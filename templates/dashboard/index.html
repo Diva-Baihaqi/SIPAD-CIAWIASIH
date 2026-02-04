@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="py-12">
+    <div class="organic-card bg-white/90 p-8 max-w-6xl mx-auto mt-8 relative overflow-hidden">
+        <!-- Decoration -->
+        <div class="absolute -top-24 -right-24 w-64 h-64 bg-moss/5 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="flex flex-col md:flex-row justify-between items-center mb-12 border-b border-timber/30 pb-6">
+            <div>
+                <h2 class="text-4xl text-charcoal mb-2">Dashboard Admin</h2>
+                <p class="text-lg text-charcoal/60 font-sans">Selamat bekerja, <strong class="text-moss">{{
+                        session['username'] }}</strong>!</p>
+            </div>
+            <div class="mt-4 md:mt-0">
+                <span
+                    class="bg-moss/10 text-moss px-6 py-2 rounded-full font-bold font-sans text-sm border border-moss/20">
+                    <i class="fas fa-circle text-[10px] mr-2 animate-pulse"></i> Sistem Online
+                </span>
+            </div>
+        </div>
+
+        <!-- Summary Stats (Organic Grid) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            <div class="organic-card p-6 bg-gradient-to-br from-mist to-white flex items-center justify-between group">
+                <div>
+                    <h3 class="font-serif text-charcoal/70 mb-1">Total Warga</h3>
+                    <p class="font-sans text-4xl font-bold text-moss" id="stat-warga">{{ stats.total_warga }}</p>
+                </div>
+                <div
+                    class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-moss shadow-sm group-hover:scale-110 transition-transform">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+            <!-- Kartu Surat Pending (Bisa Diklik) -->
+            <a href="{{ url_for('kelola_permohonan') }}"
+                class="organic-card p-6 bg-gradient-to-br from-clay/10 to-white flex items-center justify-between group hover:border-clay/50 transition-all cursor-pointer no-underline">
+                <div>
+                    <h3 class="font-serif text-charcoal/70 mb-1">Surat Pending</h3>
+                    <p class="font-sans text-4xl font-bold text-clay" id="stat-pending">{{ stats.pending_surat }}</p>
+                    <p class="text-xs text-clay mt-1 underline">Lihat & Proses &rarr;</p>
+                </div>
+                <div
+                    class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-clay shadow-sm group-hover:scale-110 transition-transform">
+                    <i class="fas fa-envelope-open-text"></i>
+                </div>
+            </a>
+            <div
+                class="organic-card p-6 bg-gradient-to-br from-sand/20 to-white flex items-center justify-between group">
+                <div>
+                    <h3 class="font-serif text-charcoal/70 mb-1">KK Terdaftar</h3>
+                    <p class="font-sans text-4xl font-bold text-charcoal" id="stat-kk">{{ stats.total_kk }}</p>
+                </div>
+                <div
+                    class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-charcoal shadow-sm group-hover:scale-110 transition-transform">
+                    <i class="fas fa-home"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions Grid -->
+        <h3 class="text-3xl font-serif mb-6 text-charcoal flex items-center gap-2">
+            <i class="fas fa-th-large text-mist bg-moss rounded p-1"></i> Menu Utama
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+            <a href="{{ url_for('kelola_penduduk') }}"
+                class="organic-card !p-6 hover:bg-moss hover:border-moss hover:text-white group text-center block no-underline transition-all min-h-[180px] flex flex-col items-center justify-center cursor-pointer">
+                <i class="fas fa-users text-5xl mb-4 text-moss group-hover:text-white transition-colors"></i>
+                <h3 class="text-xl font-bold font-serif">Data Penduduk</h3>
+                <p class="text-xs opacity-60 mt-2 font-sans group-hover:opacity-100">Tambah, Edit, Cari Warga</p>
+            </a>
+
+            <a href="{{ url_for('kelola_kk') }}"
+                class="organic-card !p-6 hover:bg-clay hover:border-clay hover:text-white group text-center block no-underline transition-all min-h-[180px] flex flex-col items-center justify-center cursor-pointer">
+                <i class="fas fa-id-card text-5xl mb-4 text-clay group-hover:text-white transition-colors"></i>
+                <h3 class="text-xl font-bold font-serif">Data KK</h3>
+                <p class="text-xs opacity-60 mt-2 font-sans group-hover:opacity-100">Arsip Kartu Keluarga</p>
+            </a>
+
+            <a href="{{ url_for('kelola_permohonan') }}"
+                class="organic-card !p-6 hover:bg-charcoal hover:border-charcoal hover:text-white group text-center block no-underline transition-all min-h-[180px] flex flex-col items-center justify-center cursor-pointer">
+                <i
+                    class="fas fa-file-signature text-5xl mb-4 text-charcoal group-hover:text-white transition-colors"></i>
+                <h3 class="text-xl font-bold font-serif">Layanan Surat</h3>
+                <p class="text-xs opacity-60 mt-2 font-sans group-hover:opacity-100">Verifikasi Permohonan</p>
+            </a>
+
+            <a href="{{ url_for('laporan') }}"
+                class="organic-card !p-6 hover:bg-sand hover:border-sand hover:text-charcoal group text-center block no-underline transition-all min-h-[180px] flex flex-col items-center justify-center cursor-pointer">
+                <i class="fas fa-print text-5xl mb-4 text-sand group-hover:text-charcoal transition-colors"></i>
+                <h3 class="text-xl font-bold font-serif">Laporan & Rekap</h3>
+                <p class="text-xs opacity-60 mt-2 font-sans group-hover:opacity-100">Cetak Laporan Bulanan</p>
+            </a>
+
+            <a href="{{ url_for('kelola_users') }}"
+                class="organic-card !p-6 hover:bg-clay hover:border-clay hover:text-white group text-center block no-underline transition-all min-h-[180px] flex flex-col items-center justify-center cursor-pointer">
+                <i class="fas fa-users-cog text-5xl mb-4 text-clay group-hover:text-white transition-colors"></i>
+                <h3 class="text-xl font-bold font-serif">Manajemen User</h3>
+                <p class="text-xs opacity-60 mt-2 font-sans group-hover:opacity-100">Kelola Akun & Hak Akses</p>
+            </a>
+
+            <a href="{{ url_for('pengaturan') }}"
+                class="organic-card !p-6 hover:bg-gray-600 hover:border-gray-600 hover:text-white group text-center block no-underline transition-all min-h-[180px] flex flex-col items-center justify-center cursor-pointer">
+                <i class="fas fa-cogs text-5xl mb-4 text-gray-500 group-hover:text-white transition-colors"></i>
+                <h3 class="text-xl font-bold font-serif">Pengaturan</h3>
+                <p class="text-xs opacity-60 mt-2 font-sans group-hover:opacity-100">Profil & Identitas Desa</p>
+            </a>
+        </div>
+
+        <!-- Visualisasi Data Section -->
+        <h3 class="text-2xl font-serif mb-8 flex items-center gap-3">
+            <i class="fas fa-chart-area text-moss"></i> Statistik Visual
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+            <!-- Grafik 1 -->
+            <div class="organic-card p-6 bg-white flex flex-col items-center justify-center">
+                <h4 class="font-sans font-bold text-gray-500 text-sm tracking-wider uppercase mb-6">Demografi Warga
+                    (L/P)</h4>
+                <div class="w-full h-full relative" style="max-height: 250px;">
+                    <canvas id="genderChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Grafik 2 -->
+            <div class="organic-card p-6 bg-white flex flex-col items-center justify-center">
+                <h4 class="font-sans font-bold text-gray-500 text-sm tracking-wider uppercase mb-6">Tren Permohonan
+                    Surat</h4>
+                <div class="w-full h-full relative" style="max-height: 250px;">
+                    <canvas id="suratChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-12 text-center border-t border-timber/30 pt-8">
+            <a href="/logout"
+                class="btn-organic text-red-500 border border-red-200 hover:bg-red-50 hover:border-red-300 shadow-none">
+                <i class="fas fa-sign-out-alt mr-2"></i> Keluar Sistem
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Konfigurasi Font Global Chart.js agar sesuai tema
+        Chart.defaults.font.family = "'Quicksand', sans-serif";
+        Chart.defaults.font.size = 14;
+        Chart.defaults.color = '#78786C';
+
+        // Data Awal dari Flask (disuntikkan via Jinja2)
+        let stats = {{ stats | tojson
+    }};
+
+    // 1. Grafik Pie (Gender) - Earth Tones
+    const genderCtx = document.getElementById('genderChart').getContext('2d');
+    const genderChart = new Chart(genderCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Laki-laki', 'Perempuan'],
+            datasets: [{
+                data: stats.warga_gender,
+                backgroundColor: ['#5D7052', '#C18C5D'], // Moss & Clay
+                borderWidth: 0,
+                hoverOffset: 15
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
+            }
+        }
+    });
+
+    // 2. Grafik Bar (Surat) - Earth Tones
+    const suratCtx = document.getElementById('suratChart').getContext('2d');
+    const suratChart = new Chart(suratCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
+            datasets: [{
+                label: 'Jumlah Surat',
+                data: stats.surat_bulanan,
+                backgroundColor: '#E6DCCD', // Sand
+                hoverBackgroundColor: '#5D7052', // Moss on hover
+                borderRadius: 8,
+                barThickness: 24
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { display: false } // Minimalist
+                },
+                x: {
+                    grid: { display: false }
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+
+    // --- REALTIME UPDATE LOGIC ---
+    // Fetch data baru setiap 5 detik
+    setInterval(() => {
+        fetch('/api/stats')
+            .then(response => {
+                if (!response.ok) throw new Error("Network response was not ok");
+                return response.json();
+            })
+            .then(data => {
+                // 1. Update Kartu Statistik
+                document.getElementById('stat-warga').innerText = data.total_warga;
+                document.getElementById('stat-pending').innerText = data.pending_surat;
+                document.getElementById('stat-kk').innerText = data.total_kk;
+
+                // 2. Update Grafik Gender
+                genderChart.data.datasets[0].data = data.warga_gender;
+                genderChart.update();
+
+                // 3. Update Grafik Surat
+                suratChart.data.datasets[0].data = data.surat_bulanan;
+                suratChart.update();
+            })
+            .catch(error => console.error("Gagal refresh data realtime:", error));
+    }, 5000); // 5000ms = 5 detik
+    });
+</script>
+{% endblock %}

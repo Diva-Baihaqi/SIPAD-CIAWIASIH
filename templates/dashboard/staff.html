@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="py-12">
+    <div class="organic-card bg-white/90 p-8 max-w-6xl mx-auto mt-8 relative overflow-hidden">
+        <!-- Decoration -->
+        <div class="absolute -top-24 -right-24 w-64 h-64 bg-moss/5 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="flex flex-col md:flex-row justify-between items-center mb-10 border-b border-timber/30 pb-6">
+            <div>
+                <h2 class="text-4xl text-charcoal mb-2">Dashboard Staff</h2>
+                <p class="text-lg text-charcoal/60 font-sans">Halo, <strong class="text-moss">{{ session['username']
+                        }}</strong>! Siap melayani warga hari ini?</p>
+            </div>
+            <div class="mt-4 md:mt-0">
+                <span class="bg-mist text-moss px-6 py-2 rounded-full font-bold font-sans text-sm border border-timber">
+                    <i class="fas fa-briefcase text-[10px] mr-2"></i> Mode Petugas Desa
+                </span>
+            </div>
+        </div>
+
+        <!-- Task Summary (Fokus pada operasional) -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+            <!-- Card Pending (Priority) -->
+            <a href="{{ url_for('kelola_permohonan', status='Pending') }}"
+                class="organic-card p-6 bg-gradient-to-br from-orange-50 to-white flex flex-col justify-between group hover:shadow-lg transition-all border-l-4 border-orange-400 no-underline cursor-pointer">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <span
+                        class="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-1 rounded-full animate-pulse">Butuh
+                        Tindakan</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-3xl text-charcoal mb-1" id="stat-pending">{{ stats.pending_surat }}</h3>
+                    <p class="text-sm text-charcoal/60">Permohonan Pending</p>
+                </div>
+            </a>
+
+            <!-- Card Processed Today -->
+            <div class="organic-card p-6 bg-white flex flex-col justify-between group border-l-4 border-moss">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="w-10 h-10 bg-moss/10 rounded-full flex items-center justify-center text-moss">
+                        <i class="fas fa-check-double"></i>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-3xl text-charcoal mb-1" id="stat-selesai">{{ stats.surat_selesai_hari_ini
+                        }}</h3>
+                    <p class="text-sm text-charcoal/60">Diselesaikan Hari Ini</p>
+                </div>
+            </div>
+
+            <!-- Card Rejected Today -->
+            <div class="organic-card p-6 bg-white flex flex-col justify-between group border-l-4 border-red-400">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-red-600">
+                        <i class="fas fa-times"></i>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-3xl text-charcoal mb-1" id="stat-ditolak">{{ stats.surat_ditolak_hari_ini
+                        }}</h3>
+                    <p class="text-sm text-charcoal/60">Ditolak Hari Ini</p>
+                </div>
+            </div>
+
+            <!-- Card Total Residents -->
+            <div class="organic-card p-6 bg-white flex flex-col justify-between group border-l-4 border-clay">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="w-10 h-10 bg-clay/10 rounded-full flex items-center justify-center text-clay">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-3xl text-charcoal mb-1" id="stat-warga">{{ stats.total_warga }}</h3>
+                    <p class="text-sm text-charcoal/60">Total Penduduk</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            <!-- Grafik Beban Kerja (Realtime) -->
+            <div class="lg:col-span-2 organic-card p-6 bg-white border border-timber/30">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-serif font-bold text-charcoal text-lg">
+                        <i class="fas fa-chart-bar text-moss mr-2"></i> Performa Layanan (7 Hari Terakhir)
+                    </h3>
+                    <span class="text-xs text-charcoal/40 bg-mist px-2 py-1 rounded">Live Update</span>
+                </div>
+                <div class="w-full h-full relative" style="max-height: 300px;">
+                    <canvas id="weeklyPerformanceTheChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Quick Actions Menu -->
+            <div class="organic-card p-6 bg- mist/30 border border-timber/20">
+                <h3 class="font-serif font-bold text-charcoal text-lg mb-6">
+                    <i class="fas fa-bolt text-clay mr-2"></i> Akses Cepat
+                </h3>
+                <div class="space-y-4">
+                    <a href="{{ url_for('kelola_permohonan') }}"
+                        class="group flex items-center p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-all border border-transparent hover:border-moss/30 cursor-pointer no-underline">
+                        <div
+                            class="w-12 h-12 rounded-lg bg-moss/10 text-moss flex items-center justify-center text-xl group-hover:bg-moss group-hover:text-white transition-colors">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="font-bold text-charcoal group-hover:text-moss transition-colors">Kelola
+                                Permohonan</h4>
+                            <p class="text-xs text-charcoal/60">Verifikasi & Cetak Surat</p>
+                        </div>
+                        <i class="fas fa-chevron-right ml-auto text-timber group-hover:text-moss"></i>
+                    </a>
+
+                    <a href="{{ url_for('kelola_penduduk') }}"
+                        class="group flex items-center p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-all border border-transparent hover:border-clay/30 cursor-pointer no-underline">
+                        <div
+                            class="w-12 h-12 rounded-lg bg-clay/10 text-clay flex items-center justify-center text-xl group-hover:bg-clay group-hover:text-white transition-colors">
+                            <i class="fas fa-user-edit"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="font-bold text-charcoal group-hover:text-clay transition-colors">Data Penduduk
+                            </h4>
+                            <p class="text-xs text-charcoal/60">Cek NIK & Update Data</p>
+                        </div>
+                        <i class="fas fa-chevron-right ml-auto text-timber group-hover:text-clay"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 text-center pt-8 border-t border-timber/30">
+            <a href="/logout"
+                class="btn-organic text-red-500 border border-red-200 hover:bg-red-50 hover:border-red-300 shadow-none px-6">
+                <i class="fas fa-sign-out-alt mr-2"></i> Keluar
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        Chart.defaults.font.family = "'Quicksand', sans-serif";
+        Chart.defaults.color = '#78786C';
+
+        let initialData = {{ stats.weekly_stats | tojson
+    }}; // Expecting array of objects {date: '...', total: ...}
+
+    const ctx = document.getElementById('weeklyPerformanceTheChart').getContext('2d');
+    const performanceChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: initialData.map(d => d.date),
+            datasets: [{
+                label: 'Surat Diproses',
+                data: initialData.map(d => d.total),
+                backgroundColor: '#5D7052',
+                borderRadius: 6,
+                barThickness: 40
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, grid: { borderDash: [5, 5] } },
+                x: { grid: { display: false } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // Realtime Refresh
+    setInterval(() => {
+        fetch('/api/stats')
+            .then(r => r.json())
+            .then(data => {
+                // Update Angka
+                document.getElementById('stat-pending').innerText = data.pending_surat;
+                document.getElementById('stat-selesai').innerText = data.surat_selesai_hari_ini;
+                document.getElementById('stat-ditolak').innerText = data.surat_ditolak_hari_ini;
+                document.getElementById('stat-warga').innerText = data.total_warga;
+            })
+            .catch(e => console.error("Update realtime gagal:", e));
+    }, 5000); // 5 Detik
+    });
+</script>
+{% endblock %}

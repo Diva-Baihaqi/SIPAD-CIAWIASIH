@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{% block title %}SID Desa{% endblock %}</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        paper: '#FDFCF8',
+                        charcoal: '#2C2C24',
+                        moss: '#5D7052',
+                        mist: '#F3F4F1',
+                        clay: '#C18C5D',
+                        sand: '#E6DCCD',
+                        timber: '#DED8CF'
+                    },
+                    fontFamily: {
+                        sans: ['Quicksand', 'sans-serif'],
+                        serif: ['Fraunces', 'serif'],
+                    },
+                    borderRadius: {
+                        'blob': '60% 40% 30% 70% / 60% 30% 70% 40%',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Alpine.js (Lightweight interaction) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="min-h-screen flex flex-col relative text-charcoal print:bg-white">
+
+    <!-- Floating Navbar -->
+    <div class="fixed top-4 left-0 right-0 z-50 flex justify-center px-4 print:hidden">
+        <nav x-data="{ mobileMenuOpen: false }"
+            class="nav-glass w-full max-w-4xl px-6 py-3 flex flex-wrap justify-between items-center transition-all duration-300 relative">
+            <!-- Logo -->
+            <a href="/" class="flex items-center gap-2 group z-50">
+                <div
+                    class="w-10 h-10 bg-moss rounded-full flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                    <i class="fas fa-leaf text-lg"></i>
+                </div>
+                <span class="font-serif font-bold text-xl tracking-tight text-charcoal">Desa<span
+                        class="text-moss">Ciawi Asih</span></span>
+            </a>
+
+            <!-- Menu Desktop -->
+            <div class="hidden md:flex gap-8 items-center font-sans font-semibold text-sm">
+                <a href="/#layanan" class="hover:text-moss transition-colors">Layanan</a>
+                <a href="/#statistik" class="hover:text-moss transition-colors">Statistik</a>
+                {% if session.get('loggedin') %}
+                <a href="{{ url_for('dashboard') }}"
+                    class="text-moss hover:bg-moss/10 px-4 py-2 rounded-full transition-colors">Dashboard</a>
+                <a href="{{ url_for('profile') }}"
+                    class="text-charcoal hover:text-moss hover:bg-moss/10 px-4 py-2 rounded-full transition-colors font-bold"
+                    title="Pengaturan Akun"><i class="fas fa-user-cog"></i></a>
+                <a href="{{ url_for('logout') }}"
+                    class="text-red-500 hover:text-red-700 hover:bg-red-50 px-4 py-2 rounded-full transition-colors font-bold"><i
+                        class="fas fa-sign-out-alt"></i></a>
+                {% else %}
+                <a href="/signup"
+                    class="px-5 py-2 rounded-full bg-moss text-white hover:bg-moss/90 transition-all font-bold shadow-md">Daftar</a>
+                <a href="/login"
+                    class="px-5 py-2 rounded-full border border-timber hover:border-moss hover:text-moss transition-all">Masuk</a>
+                {% endif %}
+            </div>
+
+            <!-- Mobile Menu Toggler (Simple) -->
+            <button @click="mobileMenuOpen = !mobileMenuOpen"
+                class="md:hidden text-2xl text-charcoal z-50 focus:outline-none transition-transform duration-300"
+                :class="mobileMenuOpen ? 'rotate-90' : ''">
+                <i class="fas" :class="mobileMenuOpen ? 'fa-times' : 'fa-bars'"></i>
+            </button>
+
+            <!-- Mobile Menu Content -->
+            <div x-show="mobileMenuOpen" x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-4"
+                class="w-full md:hidden absolute top-full left-0 mt-2 px-4" @click.away="mobileMenuOpen = false">
+                <div class="nav-glass flex flex-col p-4 gap-3 shadow-xl">
+                    <a href="/#layanan" @click="mobileMenuOpen = false"
+                        class="hover:text-moss transition-colors py-2 border-b border-gray-100">Layanan</a>
+                    <a href="/#statistik" @click="mobileMenuOpen = false"
+                        class="hover:text-moss transition-colors py-2 border-b border-gray-100">Statistik</a>
+
+                    {% if session.get('loggedin') %}
+                    <a href="{{ url_for('dashboard') }}" class="text-moss font-semibold py-2">Dashboard</a>
+                    <div class="flex gap-2 pt-2">
+                        <a href="{{ url_for('profile') }}"
+                            class="flex-1 text-center bg-gray-100 text-charcoal py-2 rounded-lg"><i
+                                class="fas fa-user-cog mr-2"></i>Akun</a>
+                        <a href="{{ url_for('logout') }}"
+                            class="flex-1 text-center bg-red-50 text-red-600 py-2 rounded-lg"><i
+                                class="fas fa-sign-out-alt mr-2"></i>Keluar</a>
+                    </div>
+                    {% else %}
+                    <div class="flex flex-col gap-3 mt-2">
+                        <a href="/signup"
+                            class="w-full text-center py-2 rounded-lg bg-moss text-white font-bold shadow-sm">Daftar</a>
+                        <a href="/login"
+                            class="w-full text-center py-2 rounded-lg border border-timber text-charcoal font-bold">Masuk</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content (Padding top added for fixed nav) -->
+    <main class="flex-grow w-full max-w-7xl mx-auto px-4 pt-32 pb-12 overflow-x-hidden">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-24 py-12 relative overflow-hidden print:hidden">
+        <!-- Organic shape footer bg -->
+        <div class="absolute inset-x-0 bottom-0 h-48 bg-moss/5 rounded-t-[50%] scale-x-150 opacity-50 z-0"></div>
+        <div class="absolute inset-x-0 bottom-0 h-32 bg-moss/10 rounded-t-[60%] scale-x-125 z-0"></div>
+
+        <div class="relative z-10 text-center max-w-2xl mx-auto px-6">
+            <h3 class="font-serif text-2xl mb-4 text-moss">Sistem Informasi Desa Ciawi Asih</h3>
+            <p class="text-charcoal/70 mb-6 font-sans">Melayani dengan hati, membangun harmoni dengan teknologi yang
+                membumi.</p>
+            <div class="flex justify-center gap-6 text-moss/60">
+                <a href="https://www.instagram.com/republikindonesia/" target="_blank" title="Instagram"
+                    class="hover:scale-110 transition-transform">
+                    <i class="fab fa-instagram hover:text-moss text-2xl"></i>
+                </a>
+                <a href="https://wa.me/6280000000000" target="_blank" title="WhatsApp"
+                    class="hover:scale-110 transition-transform">
+                    <i class="fab fa-whatsapp hover:text-moss text-2xl"></i>
+                </a>
+                <a href="https://www.youtube.com/@SekretariatPresiden" target="_blank" title="YouTube"
+                    class="hover:scale-110 transition-transform">
+                    <i class="fab fa-youtube hover:text-moss text-2xl"></i>
+                </a>
+            </div>
+            <p class="text-xs mt-8 opacity-40 font-sans">&copy; 2026 SID Desa Ciawi Asih.</p>
+        </div>
+    </footer>
+
+    <!-- Chatbot Widget -->
+    <div x-data="chatWidget()" class="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4 font-sans print:hidden">
+        <!-- Chat Window -->
+        <div x-show="isOpen" style="display: none;" x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+            x-transition:leave-end="opacity-0 translate-y-4 scale-95"
+            class="bg-white w-[calc(100vw-3rem)] md:w-96 rounded-2xl shadow-2xl overflow-hidden border border-moss/10 flex flex-col max-h-[500px]">
+
+            <!-- Header -->
+            <div class="bg-moss p-4 text-white flex justify-between items-center relative overflow-hidden">
+                <div class="absolute inset-0 bg-white/10 blur-xl"></div>
+                <div class="relative flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                        <i class="fas fa-robot text-lg"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-sm">LANA - Asisten Desa</h4>
+                        <span class="text-xs text-white/80 flex items-center gap-1">
+                            <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span> Online
+                        </span>
+                    </div>
+                </div>
+                <button @click="isOpen = false"
+                    class="relative text-white/70 hover:text-white hover:rotate-90 transition-transform"><i
+                        class="fas fa-times text-lg"></i></button>
+            </div>
+
+            <!-- Messages Area -->
+            <div class="flex-1 p-4 overflow-y-auto bg-mist space-y-3 min-h-[300px] max-h-[400px]" id="chat-messages">
+                <template x-for="msg in messages" :key="msg.id">
+                    <div :class="msg.role === 'user' ? 'flex justify-end' : 'flex justify-start'">
+                        <div :class="msg.role === 'user' ? 'bg-moss text-white rounded-tr-none' : 'bg-white text-charcoal border border-gray-200 rounded-tl-none'"
+                            class="max-w-[85%] rounded-2xl px-4 py-2 text-sm shadow-sm animate-fade-in-up">
+                            <p x-text="msg.text" class="leading-relaxed"></p>
+                            <span class="text-[10px] opacity-70 block mt-1 text-right" x-text="msg.time"></span>
+                        </div>
+                    </div>
+                </template>
+                <!-- Loading Indicator -->
+                <div x-show="isLoading" class="flex justify-start">
+                    <div
+                        class="bg-white text-charcoal border border-gray-200 rounded-2xl rounded-tl-none px-4 py-3 shadow-sm flex gap-1 items-center">
+                        <span class="text-xs text-gray-500 mr-2">Lana sedang mengetik</span>
+                        <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
+                        <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-75"></span>
+                        <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-150"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="p-3 bg-white border-t border-gray-100">
+                <form @submit.prevent="sendMessage" class="flex gap-2 relative">
+                    <input x-model="input" type="text" placeholder="Tanya sesuatu tentang desa..."
+                        class="flex-1 pl-4 pr-12 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-moss focus:ring-1 focus:ring-moss text-sm bg-gray-50 focus:bg-white transition-all shadow-inner">
+                    <button type="submit" :disabled="isLoading || !input.trim()"
+                        class="absolute right-2 top-1.5 w-9 h-9 rounded-lg bg-moss text-white flex items-center justify-center hover:bg-moss/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md">
+                        <i class="fas fa-paper-plane text-xs"></i>
+                    </button>
+                </form>
+                <div class="text-center mt-2">
+                    <p class="text-[10px] text-gray-400">Powered by LANA AI &bullet; Desa Ciawiasih</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toggle Button -->
+        <button @click="isOpen = !isOpen"
+            class="w-14 h-14 bg-gradient-to-br from-moss to-[#4A5D40] text-white rounded-full shadow-lg hover:scale-110 hover:shadow-green-900/20 transition-all flex items-center justify-center text-2xl group relative z-50 animate-bounce-slow">
+            <span x-show="!isOpen"
+                class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white"></span>
+            <i class="fas" :class="isOpen ? 'fa-times' : 'fa-comment-dots'"></i>
+        </button>
+    </div>
+
+    <!-- Interaction Scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Scroll Reveal Interaction
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('opacity-100', 'translate-y-0');
+                        entry.target.classList.remove('opacity-0', 'translate-y-8');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.organic-card, section h2, .stagger-anim').forEach(el => {
+                el.classList.add('transition-all', 'duration-700', 'ease-out', 'opacity-0', 'translate-y-8');
+                observer.observe(el);
+            });
+
+            // Global Form Loading State
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function (e) {
+                    // Check validity first (HTML5)
+                    if (!this.checkValidity()) return;
+
+                    const btn = this.querySelector('button[type="submit"]');
+                    if (btn) {
+                        const originalText = btn.innerHTML;
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Memproses...';
+                        btn.style.opacity = '0.7';
+                        btn.style.cursor = 'wait';
+
+                        // Fallback: reset after 10s if response stuck (prevent permanent disabled)
+                        setTimeout(() => {
+                            btn.disabled = false;
+                            btn.innerHTML = originalText;
+                            btn.style.opacity = '1';
+                            btn.style.cursor = 'default';
+                        }, 10000);
+                    }
+                });
+            });
+        });
+
+        // Chatbot Logic
+        function chatWidget() {
+            return {
+                isOpen: false,
+                input: '',
+                isLoading: false,
+                messages: [
+                    {
+                        id: 1,
+                        role: 'system',
+                        text: 'Halo! Saya LANA 👋. Asisten virtual Desa Ciawiasih. Silakan tanya saya tentang layanan, profil, atau data statistik desa ini.',
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    }
+                ],
+
+                async sendMessage() {
+                    if (!this.input.trim()) return;
+
+                    const userText = this.input;
+                    this.input = '';
+
+                    // Add user message
+                    this.messages.push({
+                        id: Date.now(),
+                        role: 'user',
+                        text: userText,
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    });
+
+                    this.scrollToBottom();
+                    this.isLoading = true;
+
+                    try {
+                        const res = await fetch('/api/chat', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            },
+                            body: JSON.stringify({ message: userText })
+                        });
+
+                        const data = await res.json();
+
+                        // Add bot response
+                        this.messages.push({
+                            id: Date.now() + 1,
+                            role: 'system',
+                            text: data.reply || 'Maaf, saya sedng mengalami gangguan.',
+                            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        });
+
+                    } catch (e) {
+                        console.error(e);
+                        this.messages.push({
+                            id: Date.now() + 1,
+                            role: 'system',
+                            text: 'Maaf, koneksi internet terputus.',
+                            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        });
+                    } finally {
+                        this.isLoading = false;
+                        this.scrollToBottom();
+                    }
+                },
+
+                scrollToBottom() {
+                    this.$nextTick(() => {
+                        const container = document.getElementById('chat-messages');
+                        container.scrollTop = container.scrollHeight;
+                    });
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .animate-bounce-slow {
+            animation: bounce 3s infinite;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</body>
+
+</html>

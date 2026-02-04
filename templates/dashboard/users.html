@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="py-12">
+    <div class="organic-card bg-white min-h-[80vh] p-8 max-w-6xl mx-auto mt-4">
+
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-10 border-b border-timber/30 pb-6">
+            <div>
+                <a href="{{ url_for('dashboard') }}"
+                    class="text-moss hover:underline mb-2 inline-block font-sans text-sm">&larr; Kembali ke
+                    Dashboard</a>
+                <h2 class="text-3xl font-serif text-charcoal">Manajemen Akun Pengguna</h2>
+                <p class="text-charcoal/60 font-sans">Kelola akses login untuk Admin, Staff, Pimpinan, dan Warga.</p>
+            </div>
+            <div class="mt-4 md:mt-0">
+                <button onclick="openModal('add')" class="btn-organic btn-primary flex items-center gap-2">
+                    <i class="fas fa-plus"></i> Tambah User Baru
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabel Users -->
+        <div class="overflow-x-auto rounded-xl border border-timber/50 shadow-sm">
+            <table class="w-full text-left font-sans">
+                <thead class="bg-mist/50 text-charcoal/70 uppercase text-xs font-bold tracking-wider">
+                    <tr>
+                        <th class="p-4">Username</th>
+                        <th class="p-4">Role / Hak Akses</th>
+                        <th class="p-4 text-center">Status</th>
+                        <th class="p-4 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-timber/30 bg-white">
+                    {% for u in users %}
+                    <tr class="hover:bg-mist/20 transition-colors group">
+                        <td class="p-4 font-bold text-charcoal flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs shadow-sm 
+                                {{ 'bg-moss' if u.role == 'admin' else 
+                                   'bg-clay' if u.role == 'pimpinan' else 
+                                   'bg-blue-400' if u.role == 'staff' else 'bg-gray-400' }}">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            {{ u.username }}
+                        </td>
+                        <td class="p-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border
+                                {{ 'bg-moss/10 text-moss border-moss/20' if u.role == 'admin' else 
+                                   'bg-clay/10 text-clay border-clay/20' if u.role == 'pimpinan' else 
+                                   'bg-blue-50 text-blue-600 border-blue-200' if u.role == 'staff' else 
+                                   'bg-gray-100 text-gray-600 border-gray-200' }}">
+                                {{ u.role }}
+                            </span>
+                        </td>
+                        <td class="p-4 text-center">
+                            <span class="text-xs text-green-600 font-bold"><i class="fas fa-circle text-[8px] mr-1"></i>
+                                Aktif</span>
+                        </td>
+                        <td class="p-4 text-center">
+                            <div
+                                class="flex justify-center gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                                <button onclick="openModal('edit', '{{ u.id }}', '{{ u.username }}', '{{ u.role }}')"
+                                    class="w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-100 flex items-center justify-center transition"
+                                    title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+
+                                {% if u.username != session['username'] %}
+                                <form action="{{ url_for('hapus_user', id=u.id) }}" method="POST"
+                                    onsubmit="return confirmDelete(event, this)">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit"
+                                        class="w-8 h-8 rounded-full bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition"
+                                        title="Hapus">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Add/Edit User -->
+<div id="userModal" class="fixed inset-0 z-[100] flex items-center justify-center px-4" style="display: none;">
+    <div class="absolute inset-0 bg-charcoal/40 backdrop-blur-sm" onclick="closeModal()"></div>
+
+    <div class="organic-card bg-white p-8 w-full max-w-md relative shadow-2xl z-10 animate-fade-in-up">
+        <button onclick="closeModal()"
+            class="absolute top-6 right-6 text-2xl text-timber hover:text-charcoal">&times;</button>
+
+        <h3 class="text-2xl font-serif mb-6 text-moss" id="modalTitle">Tambah User</h3>
+
+        <form id="userForm" action="{{ url_for('tambah_user') }}" method="POST" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="id_user" id="id_user">
+
+            <div>
+                <label class="block font-bold text-sm text-charcoal mb-1">Username</label>
+                <input type="text" name="username" id="username" class="input-organic" required>
+            </div>
+
+            <div>
+                <label class="block font-bold text-sm text-charcoal mb-1">Role</label>
+                <select name="role" id="role" class="input-organic cursor-pointer">
+                    <option value="admin">Admin (Full Akses)</option>
+                    <option value="pimpinan">Pimpinan (Monitoring)</option>
+                    <option value="staff">Staff (Pelayanan)</option>
+                    <option value="penduduk">Penduduk (Warga)</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block font-bold text-sm text-charcoal mb-1">Password</label>
+                <input type="password" name="password" id="password" class="input-organic"
+                    placeholder="Kosongkan jika tidak diubah" required>
+                <p class="text-xs text-charcoal/50 mt-1 italic" id="passHelp">*Wajib diisi untuk user baru.</p>
+            </div>
+
+            <button type="submit" class="btn-organic btn-primary w-full mt-4">Simpan User</button>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function openModal(mode, id = '', username = '', role = 'staff') {
+        const modal = document.getElementById('userModal');
+        const form = document.getElementById('userForm');
+        const title = document.getElementById('modalTitle');
+        const passInput = document.getElementById('password');
+        const passHelp = document.getElementById('passHelp');
+
+        modal.style.display = 'flex';
+
+        if (mode === 'edit') {
+            title.innerText = 'Edit User';
+            form.action = "{{ url_for('edit_user') }}";
+            document.getElementById('id_user').value = id;
+            document.getElementById('username').value = username;
+            document.getElementById('role').value = role;
+
+            passInput.required = false;
+            passInput.placeholder = "Isi HANYA jika ingin ganti password";
+            passHelp.innerText = "*Biarkan kosong jika password tetap.";
+        } else {
+            title.innerText = 'Tambah User Baru';
+            form.action = "{{ url_for('tambah_user') }}";
+            form.reset();
+            passInput.required = true;
+            passInput.placeholder = "Minimal 6 karakter";
+            passHelp.innerText = "*Password wajib diisi.";
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('userModal').style.display = 'none';
+
+    }
+
+    function confirmDelete(event, form) {
+        event.preventDefault(); // Stop default submit
+
+        Swal.fire({
+            title: 'Hapus User Ini?',
+            text: "Data yang dihapus tidak bisa dikembalikan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444', // Red-500 from Tailwind
+            cancelButtonColor: '#6b7280', // Gray-500
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal',
+            backdrop: `rgba(0,0,0,0.4)`,
+            customClass: {
+                popup: 'rounded-2xl font-sans',
+                confirmButton: 'px-4 py-2 rounded-lg font-bold',
+                cancelButton: 'px-4 py-2 rounded-lg font-bold'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Submit form manually
+                form.submit();
+            }
+        });
+
+        return false;
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="py-12">
+    <div class="organic-card bg-white min-h-[80vh] p-8 max-w-6xl mx-auto mt-4">
+
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-10 border-b border-timber/30 pb-6">
+            <div>
+                <a href="{{ url_for('dashboard') }}"
+                    class="text-moss hover:underline mb-2 inline-block font-sans text-sm">&larr; Kembali ke
+                    Dashboard</a>
+                <h2 class="text-3xl font-serif text-charcoal">Data Kartu Keluarga</h2>
+                <p class="text-charcoal/60 font-sans">Arsip data keluarga desa.</p>
+            </div>
+            <div class="mt-4 md:mt-0">
+                <button onclick="openModal('addModal')"
+                    class="btn-organic btn-secondary shadow-lg hover:shadow-xl group">
+                    <i class="fas fa-plus mr-2 group-hover:rotate-90 transition-transform"></i> Tambah KK Baru
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabel Data -->
+        <div class="overflow-x-auto rounded-xl border border-timber/50">
+            <table class="w-full text-left font-sans">
+                <thead class="bg-mist text-charcoal/70 uppercase text-xs font-bold tracking-wider">
+                    <tr>
+                        <th class="p-4">No. Kartu Keluarga</th>
+                        <th class="p-4">Kepala Keluarga</th>
+                        <th class="p-4">Alamat</th>
+                        <th class="p-4">Lingkungan</th>
+                        <th class="p-4 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-timber/30">
+                    {% if kk %}
+                    {% for k in kk %}
+                    <tr class="hover:bg-paper transition-colors duration-200">
+                        <td class="p-4 text-sm font-mono text-moss font-bold tracking-wide">{{ k.no_kk }}</td>
+                        <td class="p-4 font-bold text-charcoal">
+                            <i class="fas fa-user-tie text-clay mr-2"></i> {{ k.kepala_keluarga }}
+                        </td>
+                        <td class="p-4 text-sm text-charcoal/80 leading-relaxed max-w-xs">
+                            {{ k.alamat }}
+                        </td>
+                        <td class="p-4 text-sm">
+                            <span class="bg-mist px-2 py-1 rounded text-xs border border-timber">RT {{ k.rt }} / RW {{
+                                k.rw }}</span>
+                        </td>
+                        <td class="p-4 text-center">
+                            <form action="{{ url_for('hapus_kk', no_kk=k.no_kk) }}" method="POST"
+                                onsubmit="return confirm('Hapus KK {{ k.no_kk }}? PERINGATAN: Semua anggota keluarga di dalamnya mungkin akan hilang relasinya.');">
+                                <button type="submit"
+                                    class="text-red-500 hover:text-red-700 bg-red-50 w-8 h-8 rounded-full flex items-center justify-center transition-colors mx-auto"
+                                    title="Hapus">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="p-12 text-center text-charcoal/40 italic">Belum ada data Kartu Keluarga.
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Tambah KK -->
+<div id="addModal" class="fixed inset-0 z-[100] hidden items-center justify-center">
+    <div class="absolute inset-0 bg-charcoal/30 backdrop-blur-sm transition-opacity" onclick="closeModal('addModal')">
+    </div>
+    <div class="organic-card bg-white w-full max-w-lg p-8 relative z-10">
+        <h3 class="text-2xl font-serif text-clay mb-6">Tambah KK Baru</h3>
+
+        <form action="{{ url_for('tambah_kk') }}" method="POST" class="space-y-4">
+            <div>
+                <label class="block text-sm font-bold text-charcoal mb-2">No. Kartu Keluarga (16 Digit)</label>
+                <input type="text" name="no_kk" class="input-organic" required maxlength="16" placeholder="3201xxxx">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-charcoal mb-2">Kepala Keluarga</label>
+                <input type="text" name="kepala_keluarga" class="input-organic" required
+                    placeholder="Nama Kepala Keluarga">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-charcoal mb-2">Alamat Lengkap</label>
+                <textarea name="alamat" class="input-organic h-24 pt-2" required
+                    placeholder="Nama Jalan, Gg, atau Blok"></textarea>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-charcoal mb-2">RT</label>
+                    <input type="text" name="rt" class="input-organic" maxlength="3" placeholder="001">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-charcoal mb-2">RW</label>
+                    <input type="text" name="rw" class="input-organic" maxlength="3" placeholder="002">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-charcoal mb-2">Kec.</label>
+                    <input type="text" name="kecamatan" class="input-organic" value="Maju Jaya">
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-timber/30 flex justify-end gap-3">
+                <button type="button" onclick="closeModal('addModal')"
+                    class="px-6 py-2 rounded-full border border-timber text-charcoal hover:bg-mist transition-colors">Batal</button>
+                <button type="submit" class="btn-organic btn-secondary">Simpan KK</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openModal(id) {
+        document.getElementById(id).classList.remove('hidden');
+        document.getElementById(id).classList.add('flex');
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.add('hidden');
+        document.getElementById(id).classList.remove('flex');
+    }
+</script>
+
+<!-- Flash Message -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div id="flashMessage" class="fixed bottom-8 right-8 z-[110] max-w-md w-full">
+    {% for category, message in messages %}
+    <div
+        class="organic-card !p-4 mb-4 {{ 'bg-red-50' if category == 'danger' else 'bg-green-50' }} relative shadow-lg border {{ 'border-red-200' if category == 'danger' else 'border-green-200' }}">
+        <p class="font-sans text-lg font-bold {{ 'text-red-700' if category == 'danger' else 'text-green-700' }}">{{
+            message }}</p>
+    </div>
+    {% endfor %}
+</div>
+<script>
+    setTimeout(() => {
+        const flash = document.getElementById('flashMessage');
+        if (flash) flash.style.opacity = '0';
+        setTimeout(() => { if (flash) flash.remove(); }, 3000);
+    }, 3000);
+</script>
+{% endif %}
+{% endwith %}
+
+{% endblock %}

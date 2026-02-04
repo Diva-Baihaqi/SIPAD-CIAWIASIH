@@ -1,0 +1,64 @@
+{
+  "profil_desa": {
+    "nama": "Desa Ciawiasih",
+    "alamat": "Jl. Raya Ciawiasih No. 1, Kec. Susukan Lebak, Kab. Cirebon, Jawa Barat",
+    "kode_pos": "45185",
+    "email": "admin@desa-ciawiasih.go.id",
+    "telepon": "0812-3456-7890",
+    "visi": "Terwujudnya Desa Ciawiasih yang Mandiri, Sejahtera, dan Berbudaya dengan Tata Kelola Pemerintahan yang Bersih dan Melayani.",
+    "misi": [
+      "Meningkatkan kualitas pelayanan publik yang transparan dan akuntabel.",
+      "Mengembangkan potensi ekonomi lokal berbasis kerakyatan.",
+      "Meningkatkan kualitas sumber daya manusia melalui pendidikan dan kesehatan.",
+      "Memelihara nilai-nilai sosial budaya dan kearifan lokal."
+    ],
+    "sejarah_singkat": "Desa Ciawiasih merupakan desa hasil pemekaran yang berdiri sejak tahun 1980. Nama Ciawiasih diambil dari kata 'Ciawi' (Bambu) dan 'Asih' (Kasih Sayang), yang bermakna masyarakat yang kokoh namun penuh kasih sayang."
+  },
+  "pemerintahan": {
+    "kepala_desa": "Ibu Hj. Aah",
+    "sekretaris_desa": "Ibu Hj. Evi",
+    "kasi_pemerintahan": "Ibu Hj. Rohayati",
+    "kasi_pelayanan": "Ibu Hj. Moja",
+    "jam_kerja": "Senin - Jumat, Pukul 08.00 - 15.00 WIB"
+  },
+  "layanan_surat": [
+    {
+      "jenis": "Surat Keterangan Tidak Mampu (SKTM)",
+      "syarat": "KTP, KK, Surat Pengantar RT/RW",
+      "biaya": "Gratis",
+      "waktu_proses": "Maksimal 1 hari kerja"
+    },
+    {
+      "jenis": "Surat Keterangan Domisili",
+      "syarat": "KTP, KK, Bukti Kepemilikan Rumah/Sewa",
+      "biaya": "Gratis",
+      "waktu_proses": "Langsung jadi jika pejabat ada"
+    },
+    {
+      "jenis": "Surat Pengantar SKCK",
+      "syarat": "KTP, KK, Akta Kelahiran, Foto 4x6 (2 lembar)",
+      "biaya": "Gratis",
+      "waktu_proses": "Maksimal 1 hari kerja"
+    },
+    {
+      "jenis": "Surat Keterangan Usaha (SKU)",
+      "syarat": "KTP, KK, Foto tempat usaha",
+      "biaya": "Gratis",
+      "waktu_proses": "Maksimal 1 hari kerja"
+    }
+  ],
+  "faq": [
+    {
+      "tanya": "Bagaimana cara membuat KTP baru?",
+      "jawab": "Untuk pembuatan KTP baru, silahkan datang ke kantor desa membawa Fotokopi KK. Kami akan memberikan surat pengantar untuk dibawa ke Kecamatan."
+    },
+    {
+      "tanya": "Apakah layanan surat bisa online?",
+      "jawab": "Ya, Anda bisa mengajukan permohonan surat melalui website ini pada menu 'Layanan Mandiri', lalu ambil surat fisik di kantor desa setelah mendapat notifikasi WhatsApp."
+    },
+    {
+      "tanya": "Berapa lama proses surat selesai?",
+      "jawab": "Rata-rata surat selesai dalam 1 hari kerja. Untuk surat yang membutuhkan tanda tangan Camat, bisa memakan waktu 2-3 hari."
+    }
+  ]
+}

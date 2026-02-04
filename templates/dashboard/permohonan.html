@@ -1,0 +1,274 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="py-12">
+    <div class="organic-card bg-white min-h-[80vh] p-8 max-w-6xl mx-auto mt-4">
+
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-10 border-b border-timber/30 pb-6">
+            <div>
+                <a href="{{ url_for('dashboard') }}"
+                    class="text-moss hover:underline mb-2 inline-block font-sans text-sm">&larr; Kembali ke
+                    Dashboard</a>
+                <h2 class="text-3xl font-serif text-charcoal">Manajemen Permohonan</h2>
+                <p class="text-charcoal/60 font-sans">Verifikasi request surat dari warga.</p>
+            </div>
+            <div class="mt-4 md:mt-0">
+                <div class="flex gap-2 items-center">
+                    <a href="{{ url_for('export_surat_excel') }}"
+                        class="btn-organic bg-green-600 text-white !py-2 !px-4 text-sm shadow-sm hover:bg-green-700"
+                        title="Download Excel">
+                        <i class="fas fa-file-excel mr-1"></i> Excel
+                    </a>
+                    <a href="{{ url_for('export_surat_pdf') }}" target="_blank"
+                        class="btn-organic bg-red-600 text-white !py-2 !px-4 text-sm shadow-sm hover:bg-red-700"
+                        title="Cetak PDF">
+                        <i class="fas fa-file-pdf mr-1"></i> PDF
+                    </a>
+                    <span
+                        class="px-4 py-2 rounded-full bg-mist text-xs font-bold text-charcoal/50 uppercase tracking-widest border border-timber ml-2">
+                        Total: {{ permohonan|length }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter & Search Bar -->
+        <div class="mb-6 bg-mist p-4 rounded-xl border border-timber/30">
+            <form action="{{ url_for('kelola_permohonan') }}" method="GET"
+                class="flex flex-col md:flex-row gap-4 items-end">
+
+                <!-- Search -->
+                <div class="flex-1 w-full">
+                    <label class="block text-xs font-bold uppercase text-charcoal/60 mb-2">Cari Pemohon</label>
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-charcoal/40"></i>
+                        <input type="text" name="q" value="{{ q }}" placeholder="Nama / NIK..."
+                            class="w-full pl-10 pr-4 py-2 rounded-lg border border-timber/30 bg-white focus:outline-none focus:border-moss focus:ring-1 focus:ring-moss transition-all">
+                    </div>
+                </div>
+
+                <!-- Filter Status -->
+                <div class="w-full md:w-48">
+                    <label class="block text-xs font-bold uppercase text-charcoal/60 mb-2">Status</label>
+                    <select name="status"
+                        class="w-full px-4 py-2 rounded-lg border border-timber/30 bg-white cursor-pointer focus:outline-none focus:border-moss">
+                        <option value="">Semua Status</option>
+                        <option value="Pending" {{ 'selected' if status=='Pending' }}>Pending</option>
+                        <option value="Disetujui" {{ 'selected' if status=='Disetujui' }}>Disetujui</option>
+                        <option value="Ditolak" {{ 'selected' if status=='Ditolak' }}>Ditolak</option>
+                    </select>
+                </div>
+
+                <!-- Filter Jenis Surat -->
+                <div class="w-full md:w-64">
+                    <label class="block text-xs font-bold uppercase text-charcoal/60 mb-2">Jenis Surat</label>
+                    <select name="jenis"
+                        class="w-full px-4 py-2 rounded-lg border border-timber/30 bg-white cursor-pointer focus:outline-none focus:border-moss">
+                        <option value="">Semua Jenis</option>
+                        {% for j in jenis_surat %}
+                        <option value="{{ j.id }}" {{ 'selected' if jenis|int==j.id }}>{{ j.nama_surat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex gap-2 w-full md:w-auto">
+                    <button type="submit"
+                        class="bg-moss text-white px-6 py-2 rounded-lg font-bold hover:bg-green-800 transition shadow-sm w-full md:w-auto">
+                        Cari
+                    </button>
+                    {% if q or status or jenis %}
+                    <a href="{{ url_for('kelola_permohonan') }}"
+                        class="bg-red-100 text-red-600 px-4 py-2 rounded-lg font-bold hover:bg-red-200 transition border border-red-200 w-full md:w-auto text-center">
+                        <i class="fas fa-times"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabel -->
+        <div class="overflow-x-auto rounded-xl border border-timber/50">
+            <table class="w-full text-left font-sans">
+                <thead class="bg-mist text-charcoal/70 uppercase text-xs font-bold tracking-wider">
+                    <tr>
+                        <th class="p-4">Tanggal</th>
+                        <th class="p-4">NIK / Nama</th>
+                        <th class="p-4">Jenis Surat</th>
+                        <th class="p-4 w-1/3">Keperluan</th>
+                        <th class="p-4">Status</th>
+                        <th class="p-4 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-timber/30">
+                    {% if permohonan %}
+                    {% for p in permohonan %}
+                    <tr
+                        class="hover:bg-paper transition-colors duration-200 group {{ 'bg-moss/5' if p.status == 'Pending' else '' }}">
+                        <td class="p-4 text-sm text-charcoal/80">
+                            {{ p.created_at.strftime('%Y-%m-%d') }}<br>
+                            <span class="text-xs opacity-50">{{ p.created_at.strftime('%H:%M') }}</span>
+                        </td>
+                        <td class="p-4">
+                            <div class="font-bold text-charcoal">{{ p.nama_lengkap }}</div>
+                            <div class="text-xs text-charcoal/50 font-mono mb-1">{{ p.nik_pemohon }}</div>
+                            {% if p.no_hp %}
+                            <a href="https://wa.me/62{{ p.no_hp|replace('0', '', 1) if p.no_hp.startswith('0') else p.no_hp }}"
+                                target="_blank"
+                                class="inline-flex items-center gap-1 bg-green-100 text-green-700 px-2 py-0.5 rounded text-[10px] hover:bg-green-200 transition">
+                                <i class="fab fa-whatsapp"></i> {{ p.no_hp }}
+                            </a>
+                            {% endif %}
+                        </td>
+                        <td class="p-4">
+                            <span class="font-serif text-moss">{{ p.nama_surat }}</span>
+                            {% if p.no_surat %}
+                            <div
+                                class="text-xs text-clay mt-1 font-mono bg-white inline-block px-2 py-1 rounded border border-clay/30">
+                                No: {{ p.no_surat }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="p-4 text-sm text-charcoal/70 leading-relaxed italic">
+                            "{{ p.keperluan }}"
+                        </td>
+                        <td class="p-4">
+                            {% if p.status == 'Pending' %}
+                            <span
+                                class="px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-bold border border-yellow-200">Pending</span>
+                            {% elif p.status == 'Disetujui' %}
+                            <span
+                                class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold border border-green-200">Selesai</span>
+                            {% else %}
+                            <span
+                                class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold border border-red-200">Ditolak</span>
+                            {% endif %}
+                        </td>
+                        <td class="p-4 text-center">
+                            {% if p.status == 'Pending' %}
+                            <div
+                                class="flex justify-center gap-2 opacity-100 transform translate-y-0 transition-all duration-300">
+                                <form action="{{ url_for('setujui_surat', id=p.id) }}" method="POST"
+                                    onsubmit="confirmApprove(event, this)">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit"
+                                        class="w-8 h-8 rounded-full bg-moss text-white flex items-center justify-center hover:bg-green-700 hover:scale-110 shadow-sm transition-all"
+                                        title="Setujui">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </form>
+                                <form action="{{ url_for('tolak_surat', id=p.id) }}" method="POST"
+                                    onsubmit="confirmReject(event, this)">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit"
+                                        class="w-8 h-8 rounded-full bg-white border border-red-200 text-red-500 flex items-center justify-center hover:bg-red-50 hover:border-red-500 transition-all"
+                                        title="Tolak">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+                            </div>
+                            {% elif p.status == 'Disetujui' %}
+                            <a href="{{ url_for('cetak_surat', id=p.id) }}" target="_blank"
+                                class="inline-flex items-center gap-1 bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-bold border border-blue-200 hover:bg-blue-100 hover:scale-105 transition-all">
+                                <i class="fas fa-print"></i> Cetak
+                            </a>
+                            {% else %}
+                            <span class="text-charcoal/30 text-xs italic">Ditolak</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="p-12 text-center text-charcoal/40 italic">Belum ada permohonan surat
+                            masuk.</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Flash Message (Success/Error) -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div id="flashMessage" class="fixed bottom-8 right-8 z-[110] max-w-md w-full">
+    {% for category, message in messages %}
+    <div
+        class="organic-card !p-4 mb-4 {{ 'bg-red-50' if category == 'danger' else 'bg-green-50' }} relative shadow-lg border {{ 'border-red-200' if category == 'danger' else 'border-green-200' }}">
+        <p class="font-sans text-lg font-bold {{ 'text-red-700' if category == 'danger' else 'text-green-700' }}">{{
+            message | safe }}</p>
+    </div>
+    {% endfor %}
+</div>
+<script>
+    setTimeout(() => {
+        const flash = document.getElementById('flashMessage');
+        if (flash) flash.style.opacity = '0';
+        setTimeout(() => { if (flash) flash.remove(); }, 500);
+    }, 4000);
+</script>
+{% endif %}
+{% endwith %}
+
+{% endblock %}
+
+{% block scripts %}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function confirmApprove(e, form) {
+        e.preventDefault();
+        Swal.fire({
+            title: 'Setujui Permohonan?',
+            text: "Nomor surat akan digenerate otomatis dan status menjadi Selesai.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#5D7052', // Moss
+            cancelButtonColor: '#A8A29E',
+            confirmButtonText: 'Ya, Setujui',
+            cancelButtonText: 'Batal',
+            background: '#FDFCF8',
+            color: '#2C2C24',
+            iconColor: '#5D7052',
+            customClass: {
+                popup: 'organic-card !p-8 border border-timber/30 shadow-2xl rounded-[2rem]',
+                title: 'font-serif text-2xl text-moss mb-2',
+                confirmButton: 'rounded-full px-6 py-2 shadow-lg',
+                cancelButton: 'rounded-full px-6 py-2'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    }
+
+    function confirmReject(e, form) {
+        e.preventDefault();
+        Swal.fire({
+            title: 'Tolak Permohonan?',
+            text: "Tindakan ini tidak dapat dibatalkan.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#A8A29E',
+            confirmButtonText: 'Ya, Tolak',
+            cancelButtonText: 'Batal',
+            background: '#FDFCF8',
+            color: '#2C2C24',
+            customClass: {
+                popup: 'organic-card !p-8 border border-timber/30 shadow-2xl rounded-[2rem]',
+                title: 'font-serif text-2xl text-red-600 mb-2',
+                confirmButton: 'rounded-full px-6 py-2 shadow-lg',
+                cancelButton: 'rounded-full px-6 py-2'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    }
+</script>
+{% endblock %}

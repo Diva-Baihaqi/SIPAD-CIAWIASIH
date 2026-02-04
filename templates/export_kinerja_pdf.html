@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Laporan Kinerja Desa</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            font-size: 10pt;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 3px solid black;
+            padding-bottom: 10px;
+        }
+
+        .header h2 {
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .header h3 {
+            margin: 5px 0;
+            font-weight: normal;
+        }
+
+        .header p {
+            margin: 0;
+            font-style: italic;
+            font-size: 9pt;
+        }
+
+        .box-container {
+            width: 100%;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .box {
+            display: inline-block;
+            width: 30%;
+            border: 1px solid #333;
+            padding: 15px;
+            margin: 0 1%;
+            background-color: #f9f9f9;
+        }
+
+        .box h3 {
+            margin: 0 0 10px 0;
+            font-size: 12pt;
+        }
+
+        .box p {
+            margin: 0;
+            font-size: 20pt;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #333;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f0f0f0;
+            text-align: center;
+        }
+
+        .footer {
+            margin-top: 40px;
+            text-align: right;
+        }
+
+        .ttd {
+            display: inline-block;
+            width: 200px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- KOP SURAT -->
+    <div class="header">
+        <h2>PEMERINTAH KABUPATEN {{ profil.kabupaten|default('CIREBON')|upper }}</h2>
+        <h3>KECAMATAN {{ profil.kecamatan|default('SUSUKAN LEBAK')|upper }}</h3>
+        <h2>DESA {{ profil.nama_desa|default('CIAWI ASIH')|upper }}</h2>
+        <p>{{ profil.alamat_kantor|default('Jl. Raya Ciawiasih No. 1') }}</p>
+    </div>
+
+    <h3 style="text-align: center; text-decoration: underline;">LAPORAN KINERJA & PELAYANAN DESA</h3>
+    <p style="text-align: center; font-size: 9pt;">Tanggal Cetak: {{ tanggal }}</p>
+
+    <!-- STATISTIK UTAMA -->
+    <h4 style="margin-bottom: 10px;">A. Statistik Kependudukan & Layanan</h4>
+    <!-- Karena xhtml2pdf support CSS Grid/Flexbox sangat terbatas, kita pakai Tabel untuk layout 3 kolom -->
+    <table style="border: none; margin-bottom: 20px;">
+        <tr style="border: none;">
+            <td style="border: none; text-align: center; padding: 10px;">
+                <div style="border: 2px solid #5D7052; padding: 10px; border-radius: 10px;">
+                    <h3>Total Warga</h3>
+                    <p style="font-size: 24pt; color: #5D7052;">{{ stats.total_warga }}</p>
+                </div>
+            </td>
+            <td style="border: none; text-align: center; padding: 10px;">
+                <div style="border: 2px solid #C18C5D; padding: 10px; border-radius: 10px;">
+                    <h3>Kepala Keluarga</h3>
+                    <p style="font-size: 24pt; color: #C18C5D;">{{ stats.total_kk }}</p>
+                </div>
+            </td>
+            <td style="border: none; text-align: center; padding: 10px;">
+                <div style="border: 2px solid #3366cc; padding: 10px; border-radius: 10px;">
+                    <h3>Total Surat</h3>
+                    <p style="font-size: 24pt; color: #3366cc;">{{ stats.total_surat }}</p>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- STATUS SURAT -->
+    <h4>B. Performansi Layanan Surat</h4>
+    <table>
+        <thead>
+            <tr>
+                <th width="10%">No</th>
+                <th width="60%">Status Permohonan</th>
+                <th width="30%">Jumlah</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in stats.status_breakdown %}
+            <tr>
+                <td style="text-align: center;">{{ loop.index }}</td>
+                <td>{{ s.status }}</td>
+                <td style="text-align: center; font-weight: bold;">{{ s.jumlah }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3" style="text-align: center;">Belum ada data permohonan.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <br>
+
+    <!-- TOP REQUEST -->
+    <h4>C. Top 5 Layanan Surat Paling Diminati</h4>
+    <table>
+        <thead>
+            <tr>
+                <th width="10%">No</th>
+                <th width="60%">Jenis Layanan</th>
+                <th width="30%">Jumlah Permohonan</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in stats.top_surat %}
+            <tr>
+                <td style="text-align: center;">{{ loop.index }}</td>
+                <td>{{ item.nama_surat }}</td>
+                <td style="text-align: center; font-weight: bold;">{{ item.jumlah }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3" style="text-align: center;">Belum ada data.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- TANDA TANGAN -->
+    <div class="footer">
+        <div class="ttd">
+            <p>{{ profil.nama_desa|default('Ciawiasih') }}, {{ tanggal }}<br>
+                Kepala Desa</p>
+            <br><br><br><br>
+            <p><strong><u>{{ profil.nama_kades|default('H. SUKARYA')|upper }}</u></strong></p>
+        </div>
+    </div>
+
+</body>
+
+</html>

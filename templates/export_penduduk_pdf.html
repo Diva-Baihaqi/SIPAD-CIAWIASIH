@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Laporan Data Penduduk</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            font-size: 10pt;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 3px solid black;
+            padding-bottom: 10px;
+        }
+
+        .header h2 {
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .header h3 {
+            margin: 5px 0;
+            font-weight: normal;
+        }
+
+        .header p {
+            margin: 0;
+            font-style: italic;
+            font-size: 9pt;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            border: 1px solid #333;
+            padding: 6px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: right;
+            page-break-inside: avoid;
+        }
+
+        .ttd {
+            display: inline-block;
+            width: 200px;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        /* Utility */
+        .page-break {
+            page-break-after: always;
+        }
+
+        .no-bottom-border {
+            border-bottom: none;
+        }
+
+        .center {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- KOP SURAT -->
+    <div class="header">
+        <h2>PEMERINTAH KABUPATEN {{ profil.kabupaten|default('CIREBON')|upper }}</h2>
+        <h3>KECAMATAN {{ profil.kecamatan|default('SUSUKAN LEBAK')|upper }}</h3>
+        <h2>DESA {{ profil.nama_desa|default('CIAWI ASIH')|upper }}</h2>
+        <p>{{ profil.alamat_kantor|default('Jl. Raya Ciawiasih No. 1') }}</p>
+    </div>
+
+    <h3 style="text-align: center; text-decoration: underline;">LAPORAN DATA PENDUDUK</h3>
+    <p style="text-align: center; font-size: 9pt;">Per Tanggal: {{ tanggal }}</p>
+
+    <!-- TABEL DATA -->
+    <table>
+        <thead>
+            <tr>
+                <th width="3%">No</th>
+                <th width="15%">NIK</th>
+                <th width="20%">Nama Lengkap</th>
+                <th width="5%">L/P</th>
+                <th width="15%">Tempat, Tgl Lahir</th>
+                <th width="10%">Agama</th>
+                <th width="12%">Pekerjaan</th>
+                <th width="10%">Sts Kawin</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in penduduk %}
+            <tr>
+                <td class="center">{{ loop.index }}</td>
+                <td>{{ p.nik }}</td>
+                <td>{{ p.nama_lengkap }}</td>
+                <td class="center">{{ p.jenis_kelamin }}</td>
+                <td>{{ p.tempat_lahir }}, {{ p.tanggal_lahir }}</td>
+                <td>{{ p.agama }}</td>
+                <td>{{ p.pekerjaan }}</td>
+                <td>{{ p.status_perkawinan }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" class="center">Data Penduduk Kosong</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- TANDA TANGAN -->
+    <div class="footer">
+        <div class="ttd">
+            <p>{{ profil.nama_desa|default('Ciawiasih') }}, {{ tanggal }}<br>
+                Kepala Desa</p>
+            <br><br><br><br>
+            <p><strong><u>{{ profil.nama_kades|default('H. SUKARYA')|upper }}</u></strong></p>
+        </div>
+    </div>
+
+</body>
+
+</html>

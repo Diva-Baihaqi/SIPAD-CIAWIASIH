@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="py-12">
+    <div class="max-w-4xl mx-auto mt-4 px-4 overflow-x-hidden">
+
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-10 border-b border-timber/30 pb-6">
+            <div>
+                <a href="{{ url_for('dashboard') }}"
+                    class="text-moss hover:underline mb-2 inline-block font-sans text-sm">&larr; Kembali ke
+                    Dashboard</a>
+                <h2 class="text-3xl font-serif text-charcoal">Pengaturan Profil Desa</h2>
+                <p class="text-charcoal/60 font-sans">Kelola identitas desa dan konfigurasi surat.</p>
+            </div>
+            <div class="bg-gray-100 p-2 rounded-lg">
+                <i class="fas fa-cogs text-3xl text-gray-500"></i>
+            </div>
+        </div>
+
+        <form action="{{ url_for('pengaturan') }}" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <!-- Kolom Kiri: Identitas Wilayah -->
+            <div class="organic-card bg-white p-8">
+                <h3 class="text-xl font-bold font-serif mb-6 text-moss flex items-center gap-2">
+                    <i class="fas fa-map-marked-alt"></i> Identitas Wilayah
+                </h3>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-charcoal/60 mb-2">Nama Desa</label>
+                        <input type="text" name="nama_desa" value="{{ profil.nama_desa }}" class="input-organic"
+                            required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-charcoal/60 mb-2">Kecamatan</label>
+                        <input type="text" name="kecamatan" value="{{ profil.kecamatan }}" class="input-organic"
+                            required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-charcoal/60 mb-2">Kabupaten</label>
+                        <input type="text" name="kabupaten" value="{{ profil.kabupaten }}" class="input-organic"
+                            required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-charcoal/60 mb-2">Provinsi</label>
+                        <input type="text" name="provinsi" value="{{ profil.provinsi }}" class="input-organic" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-charcoal/60 mb-2">Kode Pos</label>
+                        <input type="text" name="kode_pos" value="{{ profil.kode_pos }}" class="input-organic" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-charcoal/60 mb-2">Alamat Kantor
+                            Lengkap</label>
+                        <textarea name="alamat_kantor" class="input-organic h-24 resize-none"
+                            required>{{ profil.alamat_kantor }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kolom Kanan: Pimpinan & Logo -->
+            <div class="flex flex-col gap-8">
+
+                <!-- Pimpinan -->
+                <div class="organic-card bg-white p-8">
+                    <h3 class="text-xl font-bold font-serif mb-6 text-clay flex items-center gap-2">
+                        <i class="fas fa-user-tie"></i> Kepala Desa
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-charcoal/60 mb-2">Nama Lengkap
+                                Kades</label>
+                            <input type="text" name="nama_kades" value="{{ profil.nama_kades }}"
+                                class="input-organic font-bold" required>
+                            <p class="text-xs text-gray-400 mt-1">*Sertakan gelar jika ada (misal: H. ABIDIN SYAH)</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-charcoal/60 mb-2">NIP Kades</label>
+                            <input type="text" name="nip_kades" value="{{ profil.nip_kades }}"
+                                class="input-organic font-mono" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info -->
+                <div class="organic-card bg-mist p-6 border-l-4 border-moss">
+                    <p class="text-sm italic text-gray-600">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Data ini akan otomatis muncul pada KOP Surat dan Tanda Tangan di seluruh surat yang dicetak.
+                    </p>
+                </div>
+
+                <!-- Submit -->
+                <div class="text-right">
+                    <button type="submit" id="btn-simpan"
+                        class="btn-organic btn-primary w-full md:w-auto shadow-lg text-lg hover:scale-105 transition-transform">
+                        <i class="fas fa-save mr-2"></i> Simpan Pengaturan
+                    </button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('form');
+        const btnSimpan = document.getElementById('btn-simpan');
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault(); // Tahan submit asli
+
+            // Validasi HTML5
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // Alert Konfirmasi
+            Swal.fire({
+                title: 'Simpan Perubahan?',
+                text: "Pastikan data profil desa sudah benar.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#5D7052', // Moss Green
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, Simpan!',
+                cancelButtonText: 'Batal',
+                background: '#fff',
+                iconColor: '#5D7052'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Alert Sukses
+                    Swal.fire({
+                        title: 'Berhasil!',
+                        text: 'Profil Desa berhasil diperbarui.',
+                        icon: 'success',
+                        confirmButtonColor: '#5D7052',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        form.submit(); // Kirim data
+                    });
+                }
+            });
+        }
+            });
+        });
+    });
+
+    // Handle Server-Side Flash Messages
+    {% with messages = get_flashed_messages(with_categories = true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    Swal.fire({
+        icon: {{ 'error' if category == 'danger' else 'success' | tojson }},
+        title: {{ 'Gagal!' if category == 'danger' else 'Berhasil!' | tojson }},
+        text: {{ message | tojson }},
+        confirmButtonColor: '#5D7052',
+        timer: 3000,
+        timerProgressBar: true
+        });
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+</script>
+{% endblock %}

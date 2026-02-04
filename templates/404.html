@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+    <div class="organic-card p-12 max-w-2xl bg-white/60 backdrop-blur-md relative">
+        <div class="absolute -top-10 -left-10 w-32 h-32 bg-moss/10 rounded-full blur-xl animate-pulse"></div>
+
+        <h1 class="text-8xl font-serif text-moss mb-4 opacity-80">404</h1>
+        <h2 class="text-3xl font-bold text-charcoal mb-4">Halaman Tidak Ditemukan</h2>
+        <p class="text-charcoal/60 text-lg mb-8 font-sans max-w-md mx-auto">
+            Maaf, halaman yang Anda cari mungkin sudah dipindahkan atau tidak tersedia di Desa Ciawi Asih.
+        </p>
+
+        <div class="flex gap-4 justify-center">
+            <a href="{{ url_for('index') }}" class="btn-organic btn-primary">
+                <i class="fas fa-home mr-2"></i> Kembali ke Beranda
+            </a>
+            <a href="javascript:history.back()" class="btn-organic btn-secondary">
+                <i class="fas fa-arrow-left mr-2"></i> Kembali
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

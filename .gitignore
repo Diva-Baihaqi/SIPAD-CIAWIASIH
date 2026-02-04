@@ -1,0 +1,31 @@
+
+# System & Logs
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+.DS_Store
+Thumbs.db
+
+# Virtual Environment
+env/
+venv/
+.venv/
+
+# Environment Variables (SENSITIVE!)
+.env
+.env.*
+
+# Local Scripts & Dumps (Contains sensitive/dummy data)
+scripts/
+migrasi_ke_online.py
+*.zip
+*.sql
+!database/sid_desa.sql
+
+# IDE & Editor
+.vscode/
+.idea/
+
+# Deploy Configs
+.vercel/

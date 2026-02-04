@@ -1,0 +1,267 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="py-12 no-print-padding">
+    <div class="organic-card bg-white min-h-[80vh] p-8 max-w-5xl mx-auto mt-4">
+
+        <!-- Header (Only Screen) -->
+        <div
+            class="flex flex-col md:flex-row justify-between items-center mb-10 border-b border-timber/30 pb-6 no-print">
+            <div>
+                <a href="{{ url_for('dashboard') }}"
+                    class="text-moss hover:underline mb-2 inline-block font-sans text-sm">&larr; Kembali ke
+                    Dashboard</a>
+                <h2 class="text-3xl font-serif text-charcoal">Laporan Bulanan</h2>
+                <p class="text-charcoal/60 font-sans">Rekapitulasi berdasarkan periode bulan & tahun.</p>
+            </div>
+
+            <!-- Button Print (If data exist) -->
+            {% if laporan %}
+            <div class="mt-4 md:mt-0">
+                <button onclick="window.print()"
+                    class="bg-charcoal text-white px-6 py-2 rounded-full font-bold shadow-lg hover:bg-black transition flex items-center gap-2">
+                    <i class="fas fa-print"></i> Cetak PDF
+                </button>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Filter Form (Only Screen) -->
+        <!-- Filter Form (Interactive) -->
+        <div class="mb-8 bg-mist p-6 rounded-2xl border border-timber/30 no-print">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+
+                <!-- Filter Bulan -->
+                <div>
+                    <label class="block text-xs font-bold uppercase text-charcoal/60 mb-2">Bulan</label>
+                    <select id="filter-bulan" class="input-organic cursor-pointer">
+                        {% set nama_bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus',
+                        'September', 'Oktober', 'November', 'Desember'] %}
+                        {% for i in range(1, 13) %}
+                        <option value="{{ i }}" {{ 'selected' if i==pilih_bulan else '' }}>{{ nama_bulan[i-1] }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Filter Tahun -->
+                <div>
+                    <label class="block text-xs font-bold uppercase text-charcoal/60 mb-2">Tahun</label>
+                    <select id="filter-tahun" class="input-organic cursor-pointer">
+                        {% for t in range(2024, 2030) %}
+                        <option value="{{ t }}" {{ 'selected' if t==pilih_tahun else '' }}>{{ t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Filter Status -->
+                <div>
+                    <label class="block text-xs font-bold uppercase text-charcoal/60 mb-2">Status</label>
+                    <select id="filter-status" class="input-organic cursor-pointer">
+                        <option value="">Semua Status</option>
+                        <option value="Disetujui">Disetujui</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Ditolak">Ditolak</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- KOP SURAT (Print Only) -->
+        <div class="hidden print-only text-charcoal mb-8">
+            <header class="flex items-center justify-center gap-6 relative px-4">
+                <img src="{{ url_for('static', filename ='img/logo.png') }}"
+                    class="w-20 h-auto object-contain absolute left-4 top-1" alt="Logo Kab"
+                    onerror="this.style.display='none'">
+
+                <div class="text-center flex-1">
+                    <h3 class="text-lg font-bold uppercase tracking-wide">PEMERINTAH KABUPATEN {{
+                        profil.kabupaten|default('CIREBON')|upper }}</h3>
+                    <h3 class="text-lg font-bold uppercase tracking-wide">KECAMATAN {{ profil.kecamatan|default('SUSUKAN
+                        LEBAK')|upper }}</h3>
+                    <h1 class="text-2xl font-black uppercase tracking-wider mt-1 mb-1">DESA {{
+                        profil.nama_desa|default('CIAWI ASIH')|upper }}</h1>
+                    <p class="text-xs italic font-serif">Alamat: {{ profil.alamat_kantor|default('Jl. Raya Ciawiasih No.
+                        1') }} - Kode Pos {{ profil.kode_pos }}</p>
+                </div>
+            </header>
+            <div class="border-t-[4px] double border-black mt-3 mb-6" style="border-top-style: double;"></div>
+
+            <div class="text-center mb-6">
+                <h2 class="text-xl font-bold uppercase underline decoration-2 underline-offset-4">LAPORAN PELAYANAN
+                    ADMINISTRASI</h2>
+                <p class="text-sm mt-1 italic" id="print-periode">Periode: -</p>
+            </div>
+        </div>
+
+        <!-- Tabel Laporan -->
+        <div class="overflow-x-auto min-h-[300px]">
+            <table class="w-full text-left font-sans text-sm border-collapse w-full">
+                <thead>
+                    <tr
+                        class="bg-gray-100 text-charcoal uppercase text-xs font-bold tracking-wider border-b-2 border-gray-800">
+                        <th class="p-3 border border-gray-300 w-10 text-center">No</th>
+                        <th class="p-3 border border-gray-300 w-32">Tanggal</th>
+                        <th class="p-3 border border-gray-300">Pemohon (NIK/Nama)</th>
+                        <th class="p-3 border border-gray-300">Jenis Surat</th>
+                        <th class="p-3 border border-gray-300">No. Surat</th>
+                        <th class="p-3 border border-gray-300 text-center w-24">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="laporan-body">
+                    <!-- Data Loaded via AJAX -->
+                </tbody>
+            </table>
+
+            <!-- Empty State -->
+            <div id="empty-state"
+                class="hidden text-center py-16 flex flex-col items-center justify-center text-charcoal/40">
+                <i class="fas fa-folder-open text-6xl mb-4 text-timber"></i>
+                <p class="text-lg font-serif">Tidak ada data surat pada periode ini.</p>
+            </div>
+        </div>
+
+        <!-- Summary Total -->
+        <div class="mt-6 text-sm font-bold text-right no-print">
+            Total Arsip: <span id="total-arsip">0</span> Dokumen
+        </div>
+
+        <!-- Tanda Tangan (Print Only) -->
+        <div class="hidden print-only mt-12 flex justify-end break-inside-avoid">
+            <div class="text-center w-64">
+                <p class="mb-1" id="print-tempat-tanggal">{{ profil.nama_desa|replace('Desa ', '') }}, ...</p>
+                <p class="mb-8">Mengetahui,<br>Kepala Desa</p>
+                <br><br><br>
+                <p class="font-bold underline uppercase">{{ profil.nama_kades }}</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    @media print {
+        @page {
+            size: A4;
+            margin: 15mm;
+        }
+
+        body {
+            background: white;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .organic-card {
+            box-shadow: none;
+            border: none;
+            padding: 0 !important;
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+        }
+
+        .no-print,
+        .no-print-padding {
+            display: none !important;
+            padding: 0;
+            margin: 0;
+        }
+
+        .print-only {
+            display: block !important;
+        }
+
+        table {
+            border-collapse: collapse !important;
+            width: 100%;
+            font-size: 11pt;
+        }
+
+        th,
+        td {
+            border: 1px solid black !important;
+            padding: 6px !important;
+            color: black !important;
+        }
+
+        th {
+            background-color: #f0f0f0 !important;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const bulanEl = document.getElementById('filter-bulan');
+        const tahunEl = document.getElementById('filter-tahun');
+        const statusEl = document.getElementById('filter-status');
+        const tbody = document.getElementById('laporan-body');
+        const emptyState = document.getElementById('empty-state');
+        const totalArsip = document.getElementById('total-arsip');
+
+        function loadLaporan() {
+            const bulan = bulanEl.value;
+            const tahun = tahunEl.value;
+            const status = statusEl.value;
+
+            // Update Print Header Realtime
+            const namaBulan = bulanEl.options[bulanEl.selectedIndex].text;
+            document.getElementById('print-periode').innerText = `Periode: ${namaBulan} ${tahun}`;
+            // document.getElementById('print-tempat-tanggal').innerText = `Desa Ciawi Asih, ${tahun}`; 
+            // Kita pakai static Jinja di HTML saja untuk nama desanya biar konsisten
+
+            // Fetch API
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-charcoal/50"><i class="fas fa-spinner fa-spin mr-2"></i> Memuat Data...</td></tr>';
+
+            fetch(`/api/laporan?bulan=${bulan}&tahun=${tahun}&status=${status}`)
+                .then(res => res.json())
+                .then(res => {
+                    const data = res.data;
+                    tbody.innerHTML = '';
+
+                    if (data.length === 0) {
+                        emptyState.classList.remove('hidden');
+                        totalArsip.innerText = '0';
+                    } else {
+                        emptyState.classList.add('hidden');
+                        totalArsip.innerText = data.length;
+
+                        data.forEach((row, index) => {
+                            const tr = document.createElement('tr');
+                            tr.className = 'break-inside-avoid hover:bg-mist transition-colors';
+
+                            // Baris Data
+                            tr.innerHTML = `
+                                <td class="p-3 border border-gray-300 text-center">${index + 1}</td>
+                                <td class="p-3 border border-gray-300">${row.tanggal_permohonan}</td>
+                                <td class="p-3 border border-gray-300">
+                                    <div class="font-bold">${row.nama_lengkap}</div>
+                                    <div class="text-xs text-gray-500">${row.nik_pemohon ? row.nik_pemohon : row.nik}</div>
+                                </td>
+                                <td class="p-3 border border-gray-300">${row.nama_surat}</td>
+                                <td class="p-3 border border-gray-300 font-mono text-xs">
+                                    ${row.no_surat ? row.no_surat : '-'}
+                                </td>
+                                <td class="p-3 border border-gray-300 text-center font-bold text-xs uppercase">
+                                    ${row.status}
+                                </td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-red-500 p-4">Gagal memuat data.</td></tr>';
+                });
+        }
+
+        // Attach Listeners
+        [bulanEl, tahunEl, statusEl].forEach(el => el.addEventListener('change', loadLaporan));
+
+        // Load Initial Data
+        loadLaporan();
+    });
+</script>
+{% endblock %}

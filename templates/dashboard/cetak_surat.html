@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Cetak Surat - {{ data.nama_surat }} No. {{ data.no_surat }}</title>
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Font Resmi: Times New Roman */
+        @import url('https://fonts.googleapis.com/css2?family=Tinos:wght@400;700&display=swap');
+
+        :root {
+            --font-serif: 'Tinos', 'Times New Roman', serif;
+        }
+
+        body {
+            background-color: #F3F4F6;
+            /* Gray-100 */
+            font-family: var(--font-serif);
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .paper {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm 25mm;
+            margin: 40px auto;
+            border-radius: 2px;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            position: relative;
+        }
+
+        /* Border Kop Surat Ganda (Tebal Tipis) */
+        .kop-separator {
+            border-top: 5px double #000;
+            margin-top: 12px;
+            margin-bottom: 30px;
+        }
+
+        /* Typography */
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        p,
+        td,
+        th {
+            color: #111827;
+            /* Gray-900 */
+        }
+
+        .table-data td {
+            padding: 4px 0;
+            vertical-align: top;
+        }
+
+        .label-cell {
+            width: 170px;
+        }
+
+        /* Signature Area */
+        .signature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            margin-top: 40px;
+        }
+
+        /* QRCode Box */
+        .qr-box {
+            border: 1px dashed #ccc;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            color: #888;
+            margin-top: 10px;
+        }
+
+        /* Print Settings */
+        @media print {
+            body {
+                background: none;
+                margin: 0;
+            }
+
+            .paper {
+                width: 100%;
+                margin: 0;
+                box-shadow: none;
+                padding: 10mm 15mm;
+                /* Sedikit lebih tipis saat print fisik */
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            @page {
+                margin: 0;
+                size: A4;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Floating Tools (No Print) -->
+    <div class="fixed bottom-6 right-6 flex flex-col gap-3 no-print z-50">
+        <a href="{{ url_for('kelola_permohonan') }}"
+            class="bg-gray-600 text-white w-12 h-12 rounded-full shadow-xl flex items-center justify-center hover:bg-gray-700 transition"
+            title="Kembali">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+        </a>
+        <button onclick="window.print()"
+            class="bg-blue-600 text-white w-12 h-12 rounded-full shadow-xl flex items-center justify-center hover:bg-blue-700 transition"
+            title="Cetak Sekarang">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- Paper Sheet -->
+    <div class="paper">
+
+        <!-- KOP SURAT -->
+        <header class="flex items-center justify-center gap-6 relative">
+            <img src="{{ url_for('static', filename ='img/logo.png') }}"
+                class="w-24 h-auto object-contain absolute left-0 top-1" alt="Logo Kab"
+                onerror="this.style.display='none'"> <!-- Fallback jika logo 404 -->
+
+            <div class="text-center flex-1">
+                <h3 class="text-xl font-bold uppercase tracking-wide">PEMERINTAH KABUPATEN {{
+                    profil.kabupaten|default('CIREBON')|upper }}</h3>
+                <h3 class="text-xl font-bold uppercase tracking-wide">KECAMATAN {{ profil.kecamatan|default('SUSUKAN
+                    LEBAK')|upper }}</h3>
+                <h1 class="text-3xl font-black uppercase tracking-wider mt-1 mb-1">DESA {{
+                    profil.nama_desa|default('CIAWI ASIH')|upper }}</h1>
+                <p class="text-sm italic font-serif">Alamat: {{ profil.alamat_kantor|default('Jl. Raya Ciawiasih No. 1')
+                    }} - Kode Pos {{ profil.kode_pos }}</p>
+            </div>
+        </header>
+        <div class="kop-separator"></div>
+
+        <!-- JUDUL -->
+        <div class="text-center mb-10">
+            <h2 class="text-2xl font-bold uppercase underline decoration-2 underline-offset-4">{{ data.nama_surat }}
+            </h2>
+            <p class="text-lg mt-1">Nomor: {{ data.no_surat }}</p>
+        </div>
+
+        <!-- PEMBUKAAL -->
+        <div class="text-justify leading-relaxed mb-6 text-lg">
+            <p class="indent-12">
+                Yang bertanda tangan di bawah ini Kepala Desa {{ profil.nama_desa }}, Kecamatan {{ profil.kecamatan }},
+                Kabupaten {{ profil.kabupaten }}, Provinsi {{ profil.provinsi }}, menerangkan dengan sebenarnya bahwa:
+            </p>
+        </div>
+
+        <!-- BIODATA -->
+        <table class="table-data w-full text-lg ml-4 mb-8">
+            <tr>
+                <td class="label-cell">Nama Lengkap</td>
+                <td class="w-4">:</td>
+                <td class="font-bold uppercase">{{ data.nama_lengkap }}</td>
+            </tr>
+            <tr>
+                <td>NIK</td>
+                <td>:</td>
+                <td class="font-bold tracking-wider">{{ data.nik_pemohon }}</td>
+            </tr>
+            <tr>
+                <td>Tempat, Tgl Lahir</td>
+                <td>:</td>
+                <td>{{ data.tempat_lahir }}, {{ data.tanggal_lahir }}</td>
+            </tr>
+            <tr>
+                <td>Jenis Kelamin</td>
+                <td>:</td>
+                <td>{{ 'Laki-laki' if data.jenis_kelamin == 'L' else 'Perempuan' }}</td>
+            </tr>
+            <tr>
+                <td>Pekerjaan</td>
+                <td>:</td>
+                <td>{{ data.pekerjaan }}</td>
+            </tr>
+            <tr>
+                <td>Status Perkawinan</td>
+                <td>:</td>
+                <td>{{ data.status_perkawinan }}</td>
+            </tr>
+            <tr>
+                <td>Agama</td>
+                <td>:</td>
+                <td>{{ data.agama }}</td>
+            </tr>
+            <tr>
+                <td>Alamat</td>
+                <td>:</td>
+                <td>{{ data.alamat|default('Dusun I') }}, RT {{ data.rt|default('001') }} / RW {{ data.rw|default('001')
+                    }}, Desa {{ profil.nama_desa }}</td>
+            </tr>
+        </table>
+
+        <!-- INTI SURAT -->
+        <div class="text-justify leading-relaxed mb-8 text-lg">
+            <p class="indent-12 mb-4">
+                {% if 'Kematian' in data.nama_surat %}
+                Adalah benar warga desa kami yang telah <b>MENINGGAL DUNIA</b>. Surat keterangan ini diterbitkan sebagai
+                laporan resmi kejadian kematian dan untuk keperluan administratif:
+                {% elif 'Domisili' in data.nama_surat %}
+                Adalah benar yang bersangkutan **BERDOMISILI / BERTEMPAT TINGGAL** di alamat tersebut di atas. Surat
+                keterangan ini berlaku selama 6 (enam) bulan sejak tanggal diterbitkan.
+                {% elif 'Usaha' in data.nama_surat %}
+                Adalah benar yang bersangkutan memiliki usaha **{{ data.keperluan|upper }}** yang berlokasi di wilayah
+                Desa {{ profil.nama_desa }}. Surat ini valid untuk keperluan perbankan/perizinan.
+                {% else %}
+                Adalah benar warga desa kami yang berkelakuan baik dan terdaftar dalam data kependudukan desa. Surat ini
+                diterbitkan atas permintaan yang bersangkutan untuk keperluan:
+                {% endif %}
+            </p>
+
+            <div class="bg-gray-50 border border-gray-300 p-4 text-center font-bold italic rounded">
+                " {{ data.keperluan }} "
+            </div>
+        </div>
+
+        <!-- PENUTUP -->
+        <div class="text-justify leading-relaxed text-lg mb-10">
+            <p class="indent-12">
+                Demikian surat keterangan ini kami buat dengan sebenarnya agar dapat dipergunakan sebagaimana mestinya.
+            </p>
+        </div>
+
+        <!-- TANDA TANGAN -->
+        <div class="signature-grid">
+            <!-- Kolom Kiri (QrCode / Paraf) -->
+            <div class="flex flex-col items-center justify-end pb-4">
+                <div class="qr-box">
+                    QR CODE VALIDASI
+                </div>
+                <p class="text-xs text-center mt-1 text-gray-500">Dokumen ini sah<br>walau tanpa cap basah.</p>
+            </div>
+
+            <!-- Kolom Kanan (Kades) -->
+            <div class="text-center">
+                <p class="mb-1">{{ profil.nama_desa }}, {{ data.created_at.strftime('%d %B %Y') }}</p>
+                <p class="font-bold mb-24">Kepala Desa {{ profil.nama_desa }}</p>
+
+                <p class="font-bold underline text-lg uppercase">{{ profil.nama_kades }}</p>
+                <p class="text-sm">NIP. {{ profil.nip_kades }}</p>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

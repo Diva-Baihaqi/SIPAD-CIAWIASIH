@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="py-12">
+    <div class="organic-card bg-white min-h-[80vh] p-8 max-w-6xl mx-auto mt-4">
+
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-10 border-b border-timber/30 pb-6">
+            <div>
+                <a href="{{ url_for('dashboard') }}"
+                    class="text-moss hover:underline mb-2 inline-block font-sans text-sm">&larr; Kembali ke
+                    Dashboard</a>
+                <h2 class="text-3xl font-serif text-charcoal">Data Penduduk</h2>
+                <p class="text-charcoal/60 font-sans">Kelola data warga desa secara lengkap.</p>
+            </div>
+            <div class="mt-4 md:mt-0 flex gap-2">
+                <!-- Tombol Export Excel -->
+                <a href="{{ url_for('export_penduduk_excel') }}"
+                    class="btn-organic bg-green-600 text-white shadow-lg hover:bg-green-700 hover:shadow-xl group"
+                    title="Download Excel">
+                    <i class="fas fa-file-excel mr-2"></i> Excel
+                </a>
+
+                <!-- Tombol Export PDF -->
+                <a href="{{ url_for('export_penduduk_pdf') }}" target="_blank"
+                    class="btn-organic bg-red-600 text-white shadow-lg hover:bg-red-700 hover:shadow-xl group"
+                    title="Cetak PDF">
+                    <i class="fas fa-file-pdf mr-2"></i> PDF
+                </a>
+
+                <button onclick="openModal('addModal')" class="btn-organic btn-primary shadow-lg hover:shadow-xl group">
+                    <i class="fas fa-plus mr-2 group-hover:rotate-90 transition-transform"></i> Tambah Warga
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabel Data -->
+        <div class="overflow-x-auto rounded-xl border border-timber/50">
+            <table class="w-full text-left font-sans">
+                <thead class="bg-mist text-charcoal/70 uppercase text-xs font-bold tracking-wider">
+                    <tr>
+                        <th class="p-4">NIK</th>
+                        <th class="p-4">Nama Lengkap</th>
+                        <th class="p-4">Jenis Kelamin</th>
+                        <th class="p-4">TTL</th>
+                        <th class="p-4">Pekerjaan</th>
+                        <th class="p-4 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-timber/30">
+                    {% if penduduk %}
+                    {% for p in penduduk %}
+                    <tr class="hover:bg-paper transition-colors duration-200">
+                        <td class="p-4 text-sm font-mono text-moss font-bold">{{ p.nik }}</td>
+                        <td class="p-4 font-bold text-charcoal">{{ p.nama_lengkap }}</td>
+                        <td class="p-4 text-sm">
+                            {% if p.jenis_kelamin == 'L' %}
+                            <span class="text-blue-600 bg-blue-50 px-2 py-1 rounded">Laki-Laki</span>
+                            {% else %}
+                            <span class="text-pink-600 bg-pink-50 px-2 py-1 rounded">Perempuan</span>
+                            {% endif %}
+                        </td>
+                        <td class="p-4 text-sm text-charcoal/70">
+                            {{ p.tempat_lahir }}, {{ p.tanggal_lahir }}
+                        </td>
+                        <td class="p-4 text-sm">{{ p.pekerjaan }}</td>
+                        <td class="p-4 text-center flex justify-center gap-2">
+                            <button
+                                onclick="openEditModal('{{ p.nik }}', '{{ p.nama_lengkap }}', '{{ p.no_kk }}', '{{ p.jenis_kelamin }}', '{{ p.pekerjaan }}', '{{ p.status_perkawinan }}')"
+                                class="text-clay hover:text-orange-700 bg-orange-50 p-2 rounded-lg transition-colors"
+                                title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <form action="{{ url_for('hapus_penduduk', nik=p.nik) }}" method="POST"
+                                onsubmit="return confirm('Yakin hapus data {{ p.nama_lengkap }}?');">
+                                <button type="submit"
+                                    class="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded-lg transition-colors"
+                                    title="Hapus">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="p-12 text-center text-charcoal/40 italic">Belum ada data penduduk.</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Tambah Penduduk -->
+<div id="addModal" class="fixed inset-0 z-[100] hidden items-center justify-center">
+    <div class="absolute inset-0 bg-charcoal/30 backdrop-blur-sm transition-opacity" onclick="closeModal('addModal')">
+    </div>
+    <div class="organic-card bg-white w-full max-w-2xl p-8 relative z-10 max-h-[90vh] overflow-y-auto">
+        <h3 class="text-2xl font-serif text-moss mb-6">Tambah Warga Baru</h3>
+
+        <form action="{{ url_for('tambah_penduduk') }}" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="col-span-1">
+                <label class="block text-sm font-bold text-charcoal mb-2">NIK (16 Digit)</label>
+                <input type="text" name="nik" class="input-organic" required maxlength="16" placeholder="3201xxxx">
+            </div>
+
+            <div class="col-span-1">
+                <label class="block text-sm font-bold text-charcoal mb-2">Pilih Kartu Keluarga</label>
+                <select name="no_kk" class="input-organic" required>
+                    <option value="">-- Pilih KK --</option>
+                    {% for kk in list_kk %}
+                    <option value="{{ kk.no_kk }}">{{ kk.kepala_keluarga }} - {{ kk.no_kk }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-span-2">
+                <label class="block text-sm font-bold text-charcoal mb-2">Nama Lengkap</label>
+                <input type="text" name="nama" class="input-organic" required placeholder="Nama sesuai KTP">
+            </div>
+
+            <div class="col-span-1">
+                <label class="block text-sm font-bold text-charcoal mb-2">Tempat Lahir</label>
+                <input type="text" name="tempat_lahir" class="input-organic">
+            </div>
+
+            <div class="col-span-1">
+                <label class="block text-sm font-bold text-charcoal mb-2">Tanggal Lahir</label>
+                <input type="date" name="tanggal_lahir" class="input-organic" required>
+            </div>
+
+            <div class="col-span-1">
+                <label class="block text-sm font-bold text-charcoal mb-2">Jenis Kelamin</label>
+                <select name="jk" class="input-organic">
+                    <option value="L">Laki-Laki</option>
+                    <option value="P">Perempuan</option>
+                </select>
+            </div>
+
+            <div class="col-span-1">
+                <label class="block text-sm font-bold text-charcoal mb-2">Agama</label>
+                <select name="agama" class="input-organic">
+                    <option value="Islam">Islam</option>
+                    <option value="Kristen">Kristen</option>
+                    <option value="Katolik">Katolik</option>
+                    <option value="Hindu">Hindu</option>
+                    <option value="Buddha">Buddha</option>
+                    <option value="Konghucu">Konghucu</option>
+                </select>
+            </div>
+
+            <div class="col-span-1">
+                <label class="block text-sm font-bold text-charcoal mb-2">Pekerjaan</label>
+                <input type="text" name="pekerjaan" class="input-organic" placeholder="Wiraswasta/PNS/dll">
+            </div>
+
+            <div class="col-span-1">
+                <label class="block text-sm font-bold text-charcoal mb-2">Status Perkawinan</label>
+                <select name="status_kawin" class="input-organic">
+                    <option value="Belum Kawin">Belum Kawin</option>
+                    <option value="Kawin">Kawin</option>
+                    <option value="Cerai Hidup">Cerai Hidup</option>
+                    <option value="Cerai Mati">Cerai Mati</option>
+                </select>
+            </div>
+
+            <div class="col-span-2 pt-4 border-t border-timber/30 flex justify-end gap-3">
+                <button type="button" onclick="closeModal('addModal')"
+                    class="px-6 py-2 rounded-full border border-timber text-charcoal hover:bg-mist transition-colors">Batal</button>
+                <button type="submit" class="btn-organic btn-primary">Simpan Data</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Edit Penduduk -->
+<div id="editModal" class="fixed inset-0 z-[100] hidden items-center justify-center">
+    <div class="absolute inset-0 bg-charcoal/30 backdrop-blur-sm transition-opacity" onclick="closeModal('editModal')">
+    </div>
+    <div class="organic-card bg-white w-full max-w-lg p-8 relative z-10">
+        <h3 class="text-2xl font-serif text-clay mb-6">Edit Data Warga</h3>
+
+        <form action="{{ url_for('edit_penduduk') }}" method="POST" class="space-y-4">
+            <input type="hidden" name="nik_lama" id="edit_nik_lama">
+
+            <div>
+                <label class="block text-sm font-bold text-charcoal mb-1">Nama Lengkap</label>
+                <input type="text" name="nama" id="edit_nama" class="input-organic" required>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-charcoal mb-1">Kartu Keluarga (No KK)</label>
+                <select name="no_kk" id="edit_kk" class="input-organic" required>
+                    {% for kk in list_kk %}
+                    <option value="{{ kk.no_kk }}">{{ kk.kepala_keluarga }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-charcoal mb-1">Jenis Kelamin</label>
+                    <select name="jk" id="edit_jk" class="input-organic">
+                        <option value="L">Laki-Laki</option>
+                        <option value="P">Perempuan</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-charcoal mb-1">Status</label>
+                    <select name="status_kawin" id="edit_status" class="input-organic">
+                        <option value="Belum Kawin">Belum Kawin</option>
+                        <option value="Kawin">Kawin</option>
+                        <option value="Cerai Hidup">Cerai Hidup</option>
+                        <option value="Cerai Mati">Cerai Mati</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-charcoal mb-1">Pekerjaan</label>
+                <input type="text" name="pekerjaan" id="edit_pekerjaan" class="input-organic">
+            </div>
+
+            <div class="pt-4 flex justify-end gap-3">
+                <button type="button" onclick="closeModal('editModal')"
+                    class="px-6 py-2 rounded-full border border-timber text-charcoal hover:bg-mist">Batal</button>
+                <button type="submit" class="btn-organic btn-primary">Update Data</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Logic Script -->
+<script>
+    function openModal(id) {
+        document.getElementById(id).classList.remove('hidden');
+        document.getElementById(id).classList.add('flex');
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.add('hidden');
+        document.getElementById(id).classList.remove('flex');
+    }
+
+    function openEditModal(nik, nama, kk, jk, pekerjaan, status) {
+        openModal('editModal');
+        document.getElementById('edit_nik_lama').value = nik;
+        document.getElementById('edit_nama').value = nama;
+        document.getElementById('edit_kk').value = kk;
+        document.getElementById('edit_jk').value = jk;
+        document.getElementById('edit_pekerjaan').value = pekerjaan;
+        document.getElementById('edit_status').value = status;
+    }
+</script>
+
+<!-- Flash Message -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div id="flashMessage" class="fixed bottom-8 right-8 z-[110] max-w-md w-full">
+    {% for category, message in messages %}
+    <div
+        class="organic-card !p-4 mb-4 {{ 'bg-red-50' if category == 'danger' else 'bg-green-50' }} relative shadow-lg border {{ 'border-red-200' if category == 'danger' else 'border-green-200' }}">
+        <p class="font-sans text-lg font-bold {{ 'text-red-700' if category == 'danger' else 'text-green-700' }}">{{
+            message }}</p>
+    </div>
+    {% endfor %}
+</div>
+<script>
+    setTimeout(() => {
+        const flash = document.getElementById('flashMessage');
+        if (flash) flash.style.opacity = '0';
+        setTimeout(() => { if (flash) flash.remove(); }, 500);
+    }, 3000);
+</script>
+{% endif %}
+{% endwith %}
+
+{% endblock %}
