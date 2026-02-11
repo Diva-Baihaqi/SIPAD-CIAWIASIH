@@ -1,124 +1,139 @@
-# PANDUAN DEPLOYMENT APLIKASI DESA CIAWIASIH
+# PANDUAN DEPLOYMENT SITUS DESA CIAWIASIH (EDISI RAILWAY)
 
-# (Edisi Pengguna Laragon & phpMyAdmin)
+Dokumen ini adalah panduan resmi langkah demi langkah untuk men-deploy aplikasi **Sistem Informasi Pelayanan Administrasi Desa (SIPAD)** ke layanan cloud **Railway.app**.
 
-Dokumen ini adalah panduan langkah demi langkah untuk menaruh website Anda di internet secara GRATIS selamanya.
-
----
-
-## 🏗️ PETA CITA-CITA
-
-Kita akan menggunakan dua layanan gratis terbaik:
-
-1. **RENDER.COM** (Rumah Website) -> Menggantikan Folder `www` & Terminal di laptop.
-2. **AIVEN.IO** (Gudang Data) -> Menggantikan Database MySQL di laptop.
+Kami memilih **Railway** karena mendukung **Python (Flask)** dan **MySQL** dalam satu platform yang terintegrasi, cepat, dan stabil untuk kebutuhan skripsi/proyek akhir.
 
 ---
 
-## 🛠️ TAHAP 1: PERSIAPAN DATABASE ONLINE (AIVEN)
+## 🏗️ ARSITEKTUR DEPLOYMENT
 
-Kita siapkan dulu tempat penyimpanan datanya di internet.
-
-1. Buka [https://aiven.io/](https://aiven.io/)
-2. Daftar akun (Sign Up) -> Pilih **Free Plan**.
-3. **Buat Database Baru**:
-   - Klik **Create Service**.
-   - Pilih tipe: **MySQL**.
-   - Cloud Provider: Pilih **Google Cloud** (Cari lokasi **Jakarta** atau **Singapore** yang ada label "Free Tier").
-   - Service Name: `db-desa-ciawiasih` (bebas).
-   - Klik **Create Service**.
-4. **Simpan Kunci Rahasia**:
-   - Tunggu bola status jadi **Hijau (Running)**.
-   - Di menu Overview, cari **Connection Details**.
-   - Salin data ini ke Notepad:
-     - **Host**: (Contoh: `mysql-abc.aivencloud.com`)
-     - **Port**: (Contoh: `13579`) <- _JANGAN TERLEWAT_
-     - **User**: (Biasanya `avnadmin`)
-     - **Password**: (Klik tombol mata/reveal)
-     - **Database Name**: (Biasanya `defaultdb`)
+1.  **GITHUB**: Sebagai tempat penyimpanan kode sumber (Source Code Management).
+2.  **RAILWAY**: Sebagai penyedia layanan Cloud Hosting (PaaS) untuk menjalankan aplikasi web dan database MySQL.
 
 ---
 
-## 📤 TAHAP 2: MIGRASI DATA (DARI PHPMYADMIN KE AIVEN)
+## 🛠️ TAHAP 1: PERSIAPAN FILE PROYEK (SUDAH DILAKUKAN OTOMATIS)
 
-Ini langkah memindahkan data warga dari laptop ke internet.
+Sebelum mengunggah ke internet, pastikan file konfigurasi berikut sudah ada di folder proyek Anda (Sistem Lana sudah menyiapkannya utk Anda):
 
-**Langkah A: Ambil Data dari phpMyAdmin (Export)**
+1.  **`requirements.txt`**: Daftar pustaka Python, harus menyertakan `gunicorn` dan `mysqlclient`/`pymysql`.
+2.  **`Procfile`**: Perintah untuk menjalankan web server. Isinya wajib: `web: gunicorn wsgi:application`.
+3.  **`runtime.txt`**: Menentukan versi Python (misal: `python-3.10.12`).
+4.  **`.gitignore`**: Memastikan folder sampah (`__pycache__`, `venv`) dan file rahasia (`.env`) tidak ikut terupload.
 
-1. Buka browser -> `localhost/phpmyadmin`.
-2. Klik database `sid_desa`.
-3. Klik menu **Export** di bagian atas.
-4. Klik tombol **Go**.
-5. Anda akan mendownload file bernama `sid_desa.sql`. Simpan file ini.
-
-**Langkah B: Upload ke Aiven (Import)**
-_Karena phpMyAdmin hanya untuk lokal, kita perlu alat bantu untuk akses server luar. Laragon sudah menyediakannya._
-
-1. Buka aplikasi **Laragon**.
-2. Klik tombol **Database** (Ini akan membuka aplikasi HeidiSQL).
-3. Di pojok kiri bawah, klik **New** (Buat sesi baru).
-4. Masukkan data dari **Aiven** (Tahap 1):
-   - **Hostname / IP**: (Isi Host dari Aiven)
-   - **User**: (Isi User dari Aiven)
-   - **Password**: (Isi Password dari Aiven)
-   - **Port**: (Isi Port dari Aiven)
-5. Klik **Open**.
-6. Jika berhasil masuk, Anda akan melihat database `defaultdb` di kiri.
-7. Klik menu **File** -> **Load SQL file...**
-8. Pilih file `sid_desa.sql` yang tadi didownload dari phpMyAdmin.
-9. Tekan **F9** atau tombol **Run/Play** (Segitiga Biru) untuk menjalankan.
-10. Selesai! Data Anda sekarang sudah ada di internet.
+> **Status Saat Ini**: File-file di atas sudah saya siapkan di folder Anda. Anda siap lanjut ke Tahap 2.
 
 ---
 
-## 🐙 TAHAP 3: UPLOAD KODE KE GITHUB
+## 🐙 TAHAP 2: UPLOAD KODE KE GITHUB
 
-1. Buka [GitHub.com](https://github.com/) -> Buat **New Repository** (Misal: `desa-online`).
-2. Buka Terminal VS Code (Ctrl + `).
-3. Jalankan perintah ini satu per satu:
+Anda perlu akun GitHub. Jika belum punya, daftar di [github.com](https://github.com/).
 
-   ```bash
-   git init
-   git add .
-   git commit -m "Upload pertama"
-   git branch -M main
-   # Ganti URL di bawah dengan URL GitHub Anda sendiri!
-   git remote add origin https://github.com/USERNAME_ANDA/desa-online.git
-   git push -u origin main
-   ```
+1.  **Buat Repository Baru**:
+
+    - Login ke GitHub.
+    - Klik tombol **(+)** di pojok kanan atas -> **New repository**.
+    - Nama Repository: `sipad-desa-online` (atau nama lain yang Anda suka).
+    - Set ke **Public** atau **Private** (bebas).
+    - Klik **Create repository**.
+
+2.  **Push Kode dari Laptop**:
+
+    - Buka Terminal di VS Code (Ctrl + `).
+    - Ketik perintah berikut satu per satu (tekan Enter setiap baris):
+
+    ```bash
+    git init
+    git add .
+    git commit -m "Siap deploy ke Railway"
+    git branch -M main
+    # GANTI URL DI BAWAH DENGAN URL REPO GITHUB ANDA SENDIRI!
+    git remote add origin https://github.com/USERNAME_GITHUB/sipad-desa-online.git
+    git push -u origin main
+    ```
 
 ---
 
-## 🚀 TAHAP 4: PELUNCURAN (RENDER)
+## 🚅 TAHAP 3: SETUP RAILWAY (APLIKASI + DATABASE)
 
-1. Buka [dashboard.render.com](https://dashboard.render.com/).
-2. Klik **New +** -> **Web Service**.
-3. Pilih **Build and deploy from a Git repository**.
-4. Sambungkan GitHub Anda, pilih repo `desa-online`.
-5. Isi Settingan:
+1.  **Buat Proyek Baru**:
 
-   - **Name**: `desa-ciawiasih` (Nama website)
-   - **Region**: Singapore
-   - **Branch**: `main`
-   - **Runtime**: **Python 3**
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `gunicorn wsgi:application`
-   - **Instance Type**: **Free**
+    - Buka [railway.app](https://railway.app/) dan login (bisa pakai akun GitHub).
+    - Klik tombol **+ New Project** -> Pilih **Provision MySQL**.
+    - Tunggu beberapa detik hingga kotak `MySQL` muncul.
 
-6. **Environment Variables (Wajib!)**
-   Klik **Advanced** -> **Add Environment Variable**. Masukkan kunci-kunci ini (sesuai data Aiven):
+2.  **Deploy Aplikasi Web**:
 
-   | Key (Nama Kiri)  | Value (Isi Kanan)                          |
-   | :--------------- | :----------------------------------------- |
-   | `MYSQL_HOST`     | (Host Aiven)                               |
-   | `MYSQL_USER`     | (User Aiven)                               |
-   | `MYSQL_PASSWORD` | (Password Aiven)                           |
-   | `MYSQL_DB`       | `defaultdb`                                |
-   | `MYSQL_PORT`     | (Port Aiven, contoh: 12345)                |
-   | `SECRET_KEY`     | (Isi kode acak panjang dari terminal tadi) |
-   | `GEMINI_API_KEY` | (Isi API Key AI Lana Anda)                 |
+    - Di dashboard project yang sama, klik tombol **+ New** (atau klik kanan di area kosong).
+    - Pilih **GitHub Repo**.
+    - Cari dan pilih repo `sipad-desa-online` yang baru Anda upload.
+    - Klik **Deploy Now**.
 
-7. Klik **Create Web Service**.
+3.  **Hubungkan Aplikasi dengan Database**:
+    Aplikasi akan error sebentar karena belum tahu password database-nya. Mari kita hubungkan.
 
-Tunggu 2-3 menit. Jika sukses, status jadi **Live**.
-Selamat! Website desa Anda sudah online.
+    - **Ambil Data MySQL**:
+
+      - Klik kotak **MySQL**.
+      - Buka tab **Variables**.
+      - Anda akan melihat daftar: `MYSQLHOST`, `MYSQLUSER`, `MYSQLPASSWORD`, `MYSQLPORT`, `MYSQLDATABASE`, `MYSQL_URL`.
+
+    - **Masukkan ke Aplikasi**:
+
+      - Klik kotak **Aplikasi (Repo Anda)**.
+      - Buka tab **Settings** -> Scroll ke **Environment Variables**.
+      - Tambahkan variabel berikut (Sesuaikan NILAI-nya dengan data dari tab MySQL tadi):
+
+      | Variable Name (KIRI) | Value (KANAN)               | Sumber Data          |
+      | :------------------- | :-------------------------- | :------------------- |
+      | `MYSQL_HOST`         | (Copy dari `MYSQLHOST`)     | Tab MySQL            |
+      | `MYSQL_USER`         | (Copy dari `MYSQLUSER`)     | Tab MySQL            |
+      | `MYSQL_PASSWORD`     | (Copy dari `MYSQLPASSWORD`) | Tab MySQL            |
+      | `MYSQL_DB`           | (Copy dari `MYSQLDATABASE`) | Tab MySQL            |
+      | `MYSQL_PORT`         | (Copy dari `MYSQLPORT`)     | Tab MySQL            |
+      | `SECRET_KEY`         | `rahasia_negara_123`        | Buat sendiri (bebas) |
+      | `GEMINI_API_KEY`     | (API Key Google Anda)       | Dari file .env lokal |
+
+    - Setelah disimpan, Railway otomatis akan me-restart aplikasi Anda. Tunggu hingga statusnya **Active (Hijau)**.
+
+---
+
+## 💾 TAHAP 4: MIGRASI DATABASE (IMPORT DATA)
+
+Database di Railway masih kosong. Kita perlu mengirim data dari laptop ke sana. Anda bisa menggunakan **HeidiSQL** atau **MySQL Workbench**.
+
+### OPSI A: Menggunakan HeidiSQL
+
+1.  Buka HeidiSQL -> Klik **New**.
+2.  Isi data dari Tab Variables Railway seperti biasa.
+3.  Klik **Open** -> File -> Load SQL file -> Pilih `database/sid_desa.sql` -> Run.
+
+### OPSI B: Menggunakan MySQL Workbench (Alternatif)
+
+Jika Anda lebih suka MySQL Workbench, ikuti langkah ini:
+
+1.  Buka **MySQL Workbench**.
+2.  Klik tombol **(+)** di sebelah tulisan "MySQL Connections".
+3.  Isi Form:
+    - **Connection Name**: `Desa Online` (Bebas).
+    - **Connection Method**: Standard (TCP/IP).
+    - **Hostname**: (Copy dari `MYSQLHOST` Railway).
+    - **Port**: (Copy dari `MYSQLPORT` Railway).
+    - **Username**: (Copy dari `MYSQLUSER` Railway).
+    - **Password**: Klik tombol **Store in Vault...** lalu paste password dar Railway.
+4.  Klik **Test Connection** untuk memastikan berhasil. Jika sukses, klik **OK**.
+5.  Klik kotak koneksi `Desa Online` yang baru dibuat untuk masuk.
+6.  Di dalam, klik menu **File** -> **Open SQL Script...**.
+7.  Pilih file `database/sid_desa.sql` dari laptop Anda.
+8.  Setelah script terbuka, klik ikon **Petir (Execute)** di toolbar atas.
+9.  Tunggu proses selesai. Refresh schema di panel kiri (`railway`) untuk melihat tabel.
+
+---
+
+## ✅ TAHAP 5: SELESAI
+
+1.  Kembali ke Railway.
+2.  Klik kotak **Aplikasi**.
+3.  Di bagian atas, klik link domain yang disediakan (contoh: `sipad-desa-online.up.railway.app`).
+4.  Website Desa Ciawiasih Anda sudah online! 🎉
