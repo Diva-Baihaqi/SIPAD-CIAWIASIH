@@ -8,3 +8,5 @@ mysqlclient
 python-dotenv
 requests==2.31.0
 Werkzeug==3.0.1
+pymysql
+cryptography
