@@ -120,16 +120,6 @@ Ingin menjalankan proyek ini di komputer Anda? Ikuti langkah mudah ini:
 
 ---
 
-## 🌐 Status Deployment
-
-Aplikasi ini siap "mengudara" dengan dukungan **Cloud Native**:
-
-- **App Hosting**: Render / Vercel (Serverless Ready)
-- **DB Hosting**: Aiven Cloud Database
-
-_Lihat panduan deployment lengkap di folder `docs/`._
-
----
-
 **© 2026 Pemerintah Desa Ciawiasih**.
 _Dikembangkan dengan ❤️ dan ☕ oleh Diva Baihaqi._
+
